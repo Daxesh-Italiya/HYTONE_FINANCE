@@ -3,6 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/App Deveoplment/veggi/sdk z91/demo/HYTONE_FINANCE/app/src/main/res/drawable/add_user_icon.xml" value="0.2703125" />
+        <entry key="..\:/App Deveoplment/veggi/sdk z91/demo/HYTONE_FINANCE/app/src/main/res/drawable/ic_baseline_person_add_24.xml" value="0.14635416666666667" />
+        <entry key="..\:/App Deveoplment/veggi/sdk z91/demo/HYTONE_FINANCE/app/src/main/res/drawable/input_background.xml" value="0.2703125" />
+        <entry key="..\:/App Deveoplment/veggi/sdk z91/demo/HYTONE_FINANCE/app/src/main/res/layout/activity_main.xml" value="0.264" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
       </map>
     </option>
