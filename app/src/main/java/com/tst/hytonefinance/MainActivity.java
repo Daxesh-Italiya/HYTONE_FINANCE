@@ -207,6 +207,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         PendingIntent pendingIntent=PendingIntent.getBroadcast(this,0,intent,0);
         AlarmManager alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,24*60*60*1000,pendingIntent);
+
+        Intent location_intent =new Intent(MainActivity.this, local_backup.class);
+        intent.setAction("BackgroundProcess");
+
+        PendingIntent location_pendingIntent=PendingIntent.getBroadcast(this,0,location_intent,0);
+        AlarmManager location_alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        location_alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,2*60*60*1000,location_pendingIntent);
     }
 
     @SuppressLint("MissingPermission")

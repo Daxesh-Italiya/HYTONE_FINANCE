@@ -58,6 +58,15 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".Background_Service.location_backup"
+            android:enabled="true"
+            android:exported="true"
+            >
+            <intent-filter >
+                <action android:name="BackgroundProcess"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>
