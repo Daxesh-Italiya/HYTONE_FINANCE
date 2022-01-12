@@ -1,14 +1,23 @@
 package com.tst.hytonefinance.Models;
 
 public class LOCATION {
-    String coordinates,date_Time;
+    Double longitude,latitude;
+    String date_Time;
 
-    public String getCoordinates() {
-        return coordinates;
+    public Double getLongitude() {
+        return longitude;
     }
 
-    public void setCoordinates(String coordinates) {
-        this.coordinates = coordinates;
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
     }
 
     public String getDate_Time() {
