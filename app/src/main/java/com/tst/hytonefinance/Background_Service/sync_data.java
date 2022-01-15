@@ -495,7 +495,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
             }
 
 
-            FileUploader fileUploader = new FileUploader(context,key,file_format,this);
+            FileUploader fileUploader = new FileUploader(context,getDeviceIMEI(),file_format,this);
             uploadFiles(fileUploader);
 
 

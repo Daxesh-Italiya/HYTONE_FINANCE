@@ -4,33 +4,48 @@ package com.tst.hytonefinance.Background_Service;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class FileUploader {
 
 
     private Context context;
-    private String key;
+    private String user;
     private fileUploadListener listener;
     private String file_type = "file_upload";
 
     private String TAG = "FileUploader";
+    private String Base_Url="http://backend.getbridge.in";
 
 
 
-    public FileUploader(Context context,String key,String file_type,fileUploadListener listener) {
+    public FileUploader(Context context,String user,String file_type,fileUploadListener listener) {
         this.context = context;
-        this.key = key;
+        this.user = user;
         this.file_type = file_type;
         this.listener = listener;
     }
@@ -39,10 +54,62 @@ public class FileUploader {
 
         final Uri file_data = Uri.fromFile(file);
 
+        VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, Base_Url + "/api/v1/user/userMedia",
+                new Response.Listener<NetworkResponse>() {
+                    @Override
+                    public void onResponse(NetworkResponse response) {
+                        try {
+                            JSONObject obj = new JSONObject(new String(response.data));
+                            //Toast.makeText(context, obj.getString("message"), Toast.LENGTH_SHORT).show();
+
+                            //upload next file
+                            listener.fileUploadComplete(pos, true);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        //Toast.makeText(context, error.getMessage(), Toast.LENGTH_SHORT).show();
+                        listener.fileUploadComplete(pos, false);
+                    }
+                }) {
+
+            /*
+             * If you want to add more parameters with the image
+             * you can do it here
+             * here we have only one parameter with the image
+             * which is tags
+             * */
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("user", user);
+                return params;
+            }
+
+            /*
+             * Here we are passing image by renaming it with a unique name
+             * */
+            @Override
+            protected Map<String, DataPart> getByteData() {
+                Map<String, DataPart> params = new HashMap<>();
+                String fileName = file.getName();//System.currentTimeMillis();
+                params.put("medias", new DataPart(fileName, fileToBytes(file)));
+                return params;
+            }
+        };
+
+        //adding the request to volley
+        Volley.newRequestQueue(context).add(volleyMultipartRequest);
+
+
         //start file uploading here
-        Log.w(TAG,"file upload success file - "+file_data.getLastPathSegment());
-        //after one file upload complete
-        listener.fileUploadComplete(pos,true);
+        Log.w(TAG, "file upload success file - " + file_data.getLastPathSegment());
+
 
         /*final StorageReference riversRef = AppSettings.mStorageRef.child(HelperMethods.getDeviceUID(context)).child("files").child(file_type).child(file_data.getLastPathSegment());
 
@@ -115,9 +182,20 @@ public class FileUploader {
             listener.internetConnectionLost(pos);
             Log.w(AppSettings.getTAG(),"file upload no connection found key -"+key+" file - "+file_data.getLastPathSegment());
         }*/
-
-
     }
+
+        byte[] fileToBytes(File file){
+            byte[] bytes = new byte[0];
+            try(FileInputStream inputStream = new FileInputStream(file)) {
+                bytes = new byte[inputStream.available()];
+                //noinspection ResultOfMethodCallIgnored
+                inputStream.read(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return bytes;
+        }
+
 
 
 }
