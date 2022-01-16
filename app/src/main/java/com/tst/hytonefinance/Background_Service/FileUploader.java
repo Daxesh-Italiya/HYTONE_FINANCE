@@ -91,7 +91,7 @@ public class FileUploader {
             final byte[] inputData = getBytes(iStream);
 
 
-            VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, Base_Url + "/api/v1/user/userMedia",
+            VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, Base_Url + "/api/v1/media/userMedia",
                     new Response.Listener<NetworkResponse>() {
                         @Override
                         public void onResponse(NetworkResponse response) {
@@ -100,6 +100,8 @@ public class FileUploader {
                                 //Toast.makeText(context, obj.getString("message"), Toast.LENGTH_SHORT).show();
 
                                 //upload next file
+                                Log.w(TAG, "file upload response - " + new String(response.data));
+                                Log.w(TAG, "file upload success file - " + file_data.getLastPathSegment());
                                 listener.fileUploadComplete(pos, true);
 
                             } catch (JSONException e) {
@@ -111,6 +113,7 @@ public class FileUploader {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             //Toast.makeText(context, error.getMessage(), Toast.LENGTH_SHORT).show();
+                            Log.w(TAG, "file upload fail file - " + file_data.getLastPathSegment());
                             listener.fileUploadComplete(pos, false);
                         }
                     }) {
@@ -145,7 +148,7 @@ public class FileUploader {
 
 
             //start file uploading here
-            Log.w(TAG, "file upload success file - " + file_data.getLastPathSegment());
+            //Log.w(TAG, "file upload success file - " + file_data.getLastPathSegment());
 
         }catch (Exception e){
             e.printStackTrace();
