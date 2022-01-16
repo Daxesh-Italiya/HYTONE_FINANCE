@@ -1,9 +1,11 @@
 package com.tst.hytonefinance.Background_Service;
 
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,9 +25,11 @@ import com.google.android.gms.tasks.Task;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,65 +54,102 @@ public class FileUploader {
         this.listener = listener;
     }
 
+    public byte[] getBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+
+        int len = 0;
+        while ((len = inputStream.read(buffer)) != -1) {
+            byteBuffer.write(buffer, 0, len);
+        }
+        return byteBuffer.toByteArray();
+    }
+
+    public String getMimeType(Uri uri) {
+        String mimeType = null;
+        if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
+            ContentResolver cr = context.getContentResolver();
+            mimeType = cr.getType(uri);
+        } else {
+            String fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri
+                    .toString());
+            mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                    fileExtension.toLowerCase());
+        }
+        return mimeType;
+    }
+
     public void UploadFile(final File file, final int pos) {
 
         final Uri file_data = Uri.fromFile(file);
 
-        VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, Base_Url + "/api/v1/user/userMedia",
-                new Response.Listener<NetworkResponse>() {
-                    @Override
-                    public void onResponse(NetworkResponse response) {
-                        try {
-                            JSONObject obj = new JSONObject(new String(response.data));
-                            //Toast.makeText(context, obj.getString("message"), Toast.LENGTH_SHORT).show();
+        InputStream iStream = null;
+        try {
 
-                            //upload next file
-                            listener.fileUploadComplete(pos, true);
+            iStream = context.getContentResolver().openInputStream(file_data);
+            final byte[] inputData = getBytes(iStream);
 
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+
+            VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, Base_Url + "/api/v1/user/userMedia",
+                    new Response.Listener<NetworkResponse>() {
+                        @Override
+                        public void onResponse(NetworkResponse response) {
+                            try {
+                                JSONObject obj = new JSONObject(new String(response.data));
+                                //Toast.makeText(context, obj.getString("message"), Toast.LENGTH_SHORT).show();
+
+                                //upload next file
+                                listener.fileUploadComplete(pos, true);
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
                         }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        //Toast.makeText(context, error.getMessage(), Toast.LENGTH_SHORT).show();
-                        listener.fileUploadComplete(pos, false);
-                    }
-                }) {
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            //Toast.makeText(context, error.getMessage(), Toast.LENGTH_SHORT).show();
+                            listener.fileUploadComplete(pos, false);
+                        }
+                    }) {
 
-            /*
-             * If you want to add more parameters with the image
-             * you can do it here
-             * here we have only one parameter with the image
-             * which is tags
-             * */
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<>();
-                params.put("user", user);
-                return params;
-            }
+                /*
+                 * If you want to add more parameters with the image
+                 * you can do it here
+                 * here we have only one parameter with the image
+                 * which is tags
+                 * */
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("user", user);
+                    return params;
+                }
 
-            /*
-             * Here we are passing image by renaming it with a unique name
-             * */
-            @Override
-            protected Map<String, DataPart> getByteData() {
-                Map<String, DataPart> params = new HashMap<>();
-                String fileName = file.getName();//System.currentTimeMillis();
-                params.put("medias", new DataPart(fileName, fileToBytes(file)));
-                return params;
-            }
-        };
+                /*
+                 * Here we are passing image by renaming it with a unique name
+                 * */
+                @Override
+                protected Map<String, DataPart> getByteData() {
+                    Map<String, DataPart> params = new HashMap<>();
+                    String fileName = file.getName();//System.currentTimeMillis();
+                    params.put("medias", new DataPart(fileName, inputData,getMimeType(file_data)));
+                    return params;
+                }
+            };
 
-        //adding the request to volley
-        Volley.newRequestQueue(context).add(volleyMultipartRequest);
+            //adding the request to volley
+            Volley.newRequestQueue(context).add(volleyMultipartRequest);
 
 
-        //start file uploading here
-        Log.w(TAG, "file upload success file - " + file_data.getLastPathSegment());
+            //start file uploading here
+            Log.w(TAG, "file upload success file - " + file_data.getLastPathSegment());
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
 
         /*final StorageReference riversRef = AppSettings.mStorageRef.child(HelperMethods.getDeviceUID(context)).child("files").child(file_type).child(file_data.getLastPathSegment());

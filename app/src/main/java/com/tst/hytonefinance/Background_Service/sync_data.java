@@ -506,9 +506,9 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
 
     private void uploadFiles(final FileUploader fileUploader) {
 
-        for (int i = 0 ; i<file_only.size() ; i++) {
+        //for (int i = 0 ; i<file_only.size() ; i++) {
 
-            final int pos = i;
+            final int pos = 0;
 
             new android.os.Handler().postDelayed(new Runnable() {
                 @Override
@@ -518,7 +518,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
                 }
             }, 2000L);
 
-        }
+       // }
     }
 
     @Override
