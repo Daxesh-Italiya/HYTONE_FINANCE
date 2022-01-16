@@ -7,53 +7,247 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="read sms"
-        android:onClick="readSMS"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="read call log"
-        android:onClick="readCallLog"/>
-
 
     <LinearLayout
+        android:id="@+id/Loading_page"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        >
+        <ImageView
+            android:layout_width="100pt"
+            android:layout_height="100pt"
+            android:src="@mipmap/logo"/>
+
+        <ProgressBar
+            android:id="@+id/progressBar2"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="15pt"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/Registration_page"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="visible"
+        >
+
+        <!-- ******* LOGO ********* -->
+        <ImageView
+            android:layout_width="100pt"
+            android:layout_height="100pt"
+            android:layout_marginTop="15pt"
+            android:src="@mipmap/logo"/>
+
+        <!-- ******* Label ********* -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12pt"
+            android:gravity="center"
+
+            >
+            <ImageView
+                android:layout_width="15pt"
+                android:layout_height="12pt"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="5pt"
+                android:src="@drawable/ic_baseline_person_add_24"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Create New Account"
+                android:textSize="10pt"
+                android:fontFamily="sans-serif"
+                android:textColor="@color/purple_200"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+
+        <!-- ******* Input Fields ********* -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="15pt"
+            android:background="@drawable/input_background"
+            android:layout_marginStart="5pt"
+            android:layout_marginEnd="5pt"
+            android:padding="1pt"
+            android:elevation="1pt"
+            >
+            <ImageView
+                android:layout_width="15pt"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="5pt"
+                android:src="@drawable/name_icon"
+                />
+
+            <EditText
+                android:id="@+id/user_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Name"
+                android:background="#00FFFFFF"
+                android:textSize="10pt"
+                android:fontFamily="sans-serif"
+                android:paddingTop="3pt"
+                android:paddingBottom="3pt"
+                android:layout_marginStart="5pt"
+                android:layout_marginEnd="5pt"
+                android:textColorHint="#6C77AA"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="3pt"
+            android:background="@drawable/input_background"
+            android:layout_marginStart="5pt"
+            android:layout_marginEnd="5pt"
+            android:padding="1pt"
+            >
+            <ImageView
+                android:layout_width="15pt"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="5pt"
+                android:src="@drawable/mobile_icon"
+                />
+
+            <EditText
+                android:id="@+id/mobile_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Mobile Number"
+                android:inputType="phone"
+                android:background="#00FFFFFF"
+                android:textSize="10pt"
+                android:fontFamily="sans-serif"
+                android:paddingTop="3pt"
+                android:paddingBottom="3pt"
+                android:layout_marginStart="5pt"
+                android:layout_marginEnd="5pt"
+                android:textColorHint="#6C77AA"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="3pt"
+            android:background="@drawable/input_background"
+            android:layout_marginStart="5pt"
+            android:layout_marginEnd="5pt"
+            android:padding="1pt"
+            android:elevation="1pt"
+            >
+            <ImageView
+                android:layout_width="15pt"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="5pt"
+                android:src="@drawable/application_icon"
+                />
+
+            <EditText
+                android:id="@+id/application_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Application Id"
+                android:inputType="text"
+                android:background="#00FFFFFF"
+                android:textSize="10pt"
+                android:fontFamily="sans-serif"
+                android:paddingTop="3pt"
+                android:paddingBottom="3pt"
+                android:layout_marginStart="5pt"
+                android:layout_marginEnd="5pt"
+                android:textColorHint="#6C77AA"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="3pt"
+            android:background="@drawable/input_background"
+            android:layout_marginStart="5pt"
+            android:layout_marginEnd="5pt"
+            android:padding="1pt"
+            android:elevation="1pt"
+            >
+            <ImageView
+                android:layout_width="15pt"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="5pt"
+                android:src="@drawable/type_of_loan_icon"
+                />
+
+            <EditText
+                android:id="@+id/type_of_loan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Type of loan"
+                android:inputType="text"
+                android:background="#00FFFFFF"
+                android:layout_marginTop="3pt"
+                android:textSize="10pt"
+                android:fontFamily="sans-serif"
+                android:paddingTop="3pt"
+                android:paddingBottom="3pt"
+                android:layout_marginStart="5pt"
+                android:layout_marginEnd="5pt"
+                android:textColorHint="#6C77AA"/>
+
+        </LinearLayout>
+
+
+        <!-- ******* Submit Buttons ********* -->
 
         <Button
-            android:id="@+id/select_image"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginStart="5pt"
+            android:layout_marginEnd="5pt"
             android:layout_height="wrap_content"
-            android:text="select image" />
+            android:text="submit"
+            android:layout_marginTop="10pt"
+            android:textColor="#fff"
+            android:onClick="on_submit_click"
+            />
 
-        <Button
-            android:id="@+id/upload"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:text="upload"
-            android:onClick="upload"/>
+        <!-- ******* Progress Bar ********* -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="12pt"
+            android:layout_height="12pt" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/Thank_you_page"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:onClick="Do_Nothing"
+        >
+
+            <TextView
+                android:id="@+id/Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Thank You"
+                />
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
 
 </LinearLayout>
