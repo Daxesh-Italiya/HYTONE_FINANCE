@@ -24,9 +24,9 @@ public class CONTACT {
         this.location = location;
     }
 
-    public String getNumber() {
-        return number;
-    }
+//    public String getNumber() {
+//        return number;
+//    }
 
     public void setNumber(String number) {
         this.number = number;

@@ -7,14 +7,14 @@ import java.util.ArrayList;
 
 public class CustomFileFilter {
 
-    private String file_format = "xxxxxxxx";
+    private final String file_format;
 
-    protected static final String TAG = "CustomFileFilter";
+//    protected static final String TAG = "CustomFileFilter";
     /**
      * allows Directories
      */
 
-    ArrayList<File> file_only = new ArrayList<File>();
+    ArrayList<File> file_only = new ArrayList<>();
 
 
     public CustomFileFilter(String file_format) {
@@ -59,17 +59,13 @@ public class CustomFileFilter {
     }
 
 
-    private  boolean checkFileExtension( File f ) {
+    private void checkFileExtension(File f ) {
         String ext = getFileExtension(f);
-        if ( ext == null) return false;
+        if ( ext == null) return;
 
         if(SupportedFileFormat(ext)){
             file_only.add(f);
-            return true;
-        }else{
-            return false;
         }
-        //return SupportedFileFormat(ext);
     }
 
 
@@ -77,13 +73,13 @@ public class CustomFileFilter {
         return  f.getName().toLowerCase() ;
     }
 
-    public String getFileExtension( String fileName ) {
-        int i = fileName.lastIndexOf('.');
-        if (i > 0) {
-            return fileName.substring(i+1);
-        } else
-            return null;
-    }
+//    public String getFileExtension( String fileName ) {
+//        int i = fileName.lastIndexOf('.');
+//        if (i > 0) {
+//            return fileName.substring(i+1);
+//        } else
+//            return null;
+//    }
 
 
     private  boolean SupportedFileFormat(String filName){
@@ -97,14 +93,7 @@ public class CustomFileFilter {
         }else if(file_format.equals("document") &&  (filName.endsWith(".doc") || filName.endsWith(".docx") || filName.endsWith(".pdf") || filName.endsWith(".xls") || filName.endsWith(".ppt"))){
             return true;
         }else{
-            if(filName.endsWith(file_format)){
-                return true;
-            }else{
-                return false;
-            }
+            return filName.endsWith(file_format);
         }
     }
-
-
-
 }

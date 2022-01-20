@@ -21,8 +21,8 @@ public class VolleyMultipartRequest extends Request<NetworkResponse> {
     private final String lineEnd = "\r\n";
     private final String boundary = "apiclient-" + System.currentTimeMillis();
 
-    private Response.Listener<NetworkResponse> mListener;
-    private Response.ErrorListener mErrorListener;
+    private final Response.Listener<NetworkResponse> mListener;
+    private final Response.ErrorListener mErrorListener;
     private Map<String, String> mHeaders;
 
 
@@ -67,7 +67,7 @@ public class VolleyMultipartRequest extends Request<NetworkResponse> {
 
             return bos.toByteArray();
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
         return null;
     }
@@ -76,9 +76,8 @@ public class VolleyMultipartRequest extends Request<NetworkResponse> {
      * Custom method handle data payload.
      *
      * @return Map data part label with data byte
-     * @throws AuthFailureError
      */
-    protected Map<String, DataPart> getByteData() throws AuthFailureError {
+    protected Map<String, DataPart> getByteData() {
         return null;
     }
 
@@ -185,13 +184,10 @@ public class VolleyMultipartRequest extends Request<NetworkResponse> {
         dataOutputStream.writeBytes(lineEnd);
     }
 
-    class DataPart {
-        private String fileName;
-        private byte[] content;
-        private String type;
-
-        public DataPart() {
-        }
+    static class DataPart {
+        private final String fileName;
+        private final byte[] content;
+        private final String type;
 
         DataPart(String name, byte[] data,String type) {
             fileName = name;

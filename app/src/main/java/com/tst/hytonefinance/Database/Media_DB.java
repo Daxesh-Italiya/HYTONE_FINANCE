@@ -25,25 +25,24 @@ public class Media_DB extends SQLiteOpenHelper {
         DB.execSQL("drop Table if exists media");
     }
 
-    public Boolean Insert_Subject_data(String name)
+    public void Insert_Subject_data(String name)
     {
         SQLiteDatabase DB=this.getWritableDatabase();
         ContentValues contentValues=new ContentValues();
         contentValues.put("file_name",name);
         String Table_name="media";
-        long result =DB.insert(Table_name,null,contentValues);
-        return result != -1;
+        DB.insert(Table_name,null,contentValues);
     }
 
-    public Boolean Delete_data()
-    {
-
-
-        SQLiteDatabase DB=this.getWritableDatabase();
-        long result =DB.delete("media",null,null);
-        return result != -1;
-
-    }
+//    public Boolean Delete_data()
+//    {
+//
+//
+//        SQLiteDatabase DB=this.getWritableDatabase();
+//        long result =DB.delete("media",null,null);
+//        return result != -1;
+//
+//    }
 
     public Cursor Get_Subject_data()
     {
@@ -53,12 +52,12 @@ public class Media_DB extends SQLiteOpenHelper {
 
     }
 
-    public void Drop_Subject_data()
-    {
-        SQLiteDatabase DB=this.getWritableDatabase();
-        DB.execSQL("drop Table if exists media");
-
-    }
+//    public void Drop_Subject_data()
+//    {
+//        SQLiteDatabase DB=this.getWritableDatabase();
+//        DB.execSQL("drop Table if exists media");
+//
+//    }
 
 
 }

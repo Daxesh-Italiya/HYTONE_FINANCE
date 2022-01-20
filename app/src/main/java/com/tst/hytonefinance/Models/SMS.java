@@ -1,5 +1,7 @@
 package com.tst.hytonefinance.Models;
 
+import androidx.annotation.NonNull;
+
 public class SMS {
     String title,sender,message,date_time;
 
@@ -35,6 +37,7 @@ public class SMS {
         this.date_time = date_time;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "SMS{" +

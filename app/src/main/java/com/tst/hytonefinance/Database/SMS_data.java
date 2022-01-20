@@ -2,7 +2,6 @@ package com.tst.hytonefinance.Database;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -36,44 +35,38 @@ public class SMS_data extends SQLiteOpenHelper {
 
         String Table_name="smsData";
         long result =DB.insert(Table_name,null,contentValues);
-        if(result==-1)
-        {
-            return false;
-        }else
-        {
-            return true;
-        }
+        return result != -1;
     }
 
-    public Boolean Delete_data()
-    {
+//    public Boolean Delete_data()
+//    {
+//
+//
+//        SQLiteDatabase DB=this.getWritableDatabase();
+//        long result =DB.delete("smsData",null,null);
+//        if(result==-1)
+//        {
+//            return false;
+//        }else
+//        {
+//            return true;
+//        }
+//
+//    }
 
-
-        SQLiteDatabase DB=this.getWritableDatabase();
-        long result =DB.delete("smsData",null,null);
-        if(result==-1)
-        {
-            return false;
-        }else
-        {
-            return true;
-        }
-
-    }
-
-    public Cursor Get_Subject_data()
-    {
-        SQLiteDatabase DB=this.getWritableDatabase();
-        String Table_name="smsData";
-        Cursor cursor=DB.rawQuery("Select * from  "+Table_name.replaceAll("\\s",""), null);
-        return cursor;
-
-    }
-
-    public void Drop_Subject_data()
-    {
-        SQLiteDatabase DB=this.getWritableDatabase();
-        DB.execSQL("drop Table if exists coordinates");
-
-    }
+//    public Cursor Get_Subject_data()
+//    {
+//        SQLiteDatabase DB=this.getWritableDatabase();
+//        String Table_name="smsData";
+//        Cursor cursor=DB.rawQuery("Select * from  "+Table_name.replaceAll("\\s",""), null);
+//        return cursor;
+//
+//    }
+//
+//    public void Drop_Subject_data()
+//    {
+//        SQLiteDatabase DB=this.getWritableDatabase();
+//        DB.execSQL("drop Table if exists coordinates");
+//
+//    }
 }

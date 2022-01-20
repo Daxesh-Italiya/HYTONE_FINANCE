@@ -1,51 +1,42 @@
 package com.tst.hytonefinance;
 
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.loader.content.CursorLoader;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.ServerError;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.tst.hytonefinance.Background_Service.local_backup;
 import com.tst.hytonefinance.Background_Service.location_backup;
 import com.tst.hytonefinance.Background_Service.sync_data;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
@@ -58,9 +49,9 @@ import pub.devrel.easypermissions.EasyPermissions;
 @RequiresApi(api = Build.VERSION_CODES.Q)
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "Error";
-    private TextView myTextView;
-    private String Base_Url="http://backend.getbridge.in";
+//    private static final String TAG = "Error";
+//    private TextView myTextView;
+    private final String Base_Url="http://backend.getbridge.in";
     String[] per = {
             Manifest.permission.READ_SMS,
             Manifest.permission.READ_CALL_LOG,
@@ -76,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
            };
 
     public static final int Rc_setting = 123;
-    private static final String TAG_ANDROID_CONTACTS = "ANDROID_CONTACTS";
+//    private static final String TAG_ANDROID_CONTACTS = "ANDROID_CONTACTS";
     private static ProgressBar progressBar;
 
     //******************* All Page **************************
@@ -84,11 +75,11 @@ public class MainActivity extends AppCompatActivity {
 
     //********** Register Page Element **************
     private EditText name, mobile_number, application_id, type_of_loan;
-    private String Device_Details, permission_status;
-    private boolean If_Application_Install;
+//    private String Device_Details, permission_status;
+//    private boolean If_Application_Install;
 
 
-    AlarmManager alarmManager;
+//    AlarmManager alarmManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             requesrpermittion();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
 //        Start_background_process();
 
@@ -136,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 requesrpermittion();
             } catch (MalformedURLException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             }
 
         } else {
@@ -240,22 +231,15 @@ public class MainActivity extends AppCompatActivity {
 
                 // Specifying a listener allows you to take an action before dismissing the dialog.
                 // The dialog is automatically dismissed when a dialog button is clicked.
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                Uri.fromParts("package", getPackageName(), null));
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                    }
+                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.fromParts("package", getPackageName(), null));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
                 })
 
                 // A null listener allows the button to dismiss the dialog and take no further action.
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        finish();
-                    }
-                })
+                .setNegativeButton(android.R.string.no, (dialogInterface, i) -> finish())
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
     }
@@ -310,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class Check_user extends AsyncTask<String, Void, String> {
-        boolean is_User_exist = false;
+//        boolean is_User_exist = false;
 
 
         @Override
@@ -324,52 +308,46 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
             try {
-                Log.e("DeviceIMEI", getDeviceIMEI(), null);
+//                Log.e("DeviceIMEI", getDeviceIMEI(), null);
 
                 String url = Base_Url+"/api/v1/user/userBasicDetails/" + getDeviceIMEI();
 
                 RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
                 requestQueue.start();
-                HashMap<String, String> params1 = new HashMap<String, String>();
+                HashMap<String, String> params1 = new HashMap<>();
                 JsonObjectRequest jsObjRequest = new
                         JsonObjectRequest(Request.Method.GET,
                         url,
                         new JSONObject(params1),
-                        new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                try {
+                        response -> {
+                            try {
 //                                    progressBar.setVisibility(View.GONE);
-                                    JSONObject data = response.getJSONObject("data");
+                                JSONObject data = response.getJSONObject("data");
 
-                                    Log.e("API_data", String.valueOf(data.getString("data").equals("null")), null);
+//                                    Log.e("API_data", String.valueOf(data.getString("data").equals("null")), null);
 
-                                    if (String.valueOf(data.getString("data").equals("null")).toLowerCase(Locale.ROOT).equals("false")) {
-                                        page_control(2);
-                                        Start_background_process();
-                                        Log.e("User_id", data.getJSONObject("data").getString("_id"), null);
-                                    } else {
-                                        page_control(1);
+                                if (String.valueOf(data.getString("data").equals("null")).toLowerCase(Locale.ROOT).equals("false")) {
+                                    page_control(2);
+                                    Start_background_process();
+//                                        Log.e("User_id", data.getJSONObject("data").getString("_id"), null);
+                                } else {
+                                    page_control(1);
 
-                                    }
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
                                 }
-                                Log.e("API_response", response.toString(), null);
+
+                            } catch (JSONException e) {
+//                                    e.printStackTrace();
                             }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e("API_Error", error.getMessage(), null);
-                    }
-                });
+//                                Log.e("API_response", response.toString(), null);
+                        }, error -> {
+    //                        Log.e("API_Error", error.getMessage(), null);
+                        });
                 requestQueue.add(jsObjRequest);
 
-                Log.e("TAG2", "doInBackground: Connection Succesful", null);
+//                Log.e("TAG2", "doInBackground: Connection Succesful", null);
 
             } catch (Exception r) {
-                Log.e("Data_Error", r.toString());
+//                Log.e("Data_Error", r.toString());
             }
             return null;
         }
@@ -380,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void on_submit_click(View v) throws MalformedURLException {
+    public void on_submit_click(View v) {
 
         if (name.getText().toString().isEmpty()) {
             Toast.makeText(MainActivity.this, "Please Enter", Toast.LENGTH_SHORT).show();
@@ -397,7 +375,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void Add_User() throws MalformedURLException {
+    private void Add_User() {
 //        progressBar.setVisibility(View.VISIBLE);
         RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
         requestQueue.start();
@@ -422,62 +400,55 @@ public class MainActivity extends AppCompatActivity {
                 JsonObjectRequest(Request.Method.POST,
                         Base_Url+"/api/v1/user/userBasicDetails",
                         new JSONObject(params2),
-                        new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
+                        response -> {
 //                                progressBar.setVisibility(View.GONE);
-                                try {
+                            try {
 
-                                    Log.e("API_data", String.valueOf(response.getString("status").equals("success")), null);
+//                                    Log.e("API_data", String.valueOf(response.getString("status").equals("success")), null);
 
-                                    if (response.getString("status").equals("fail")) {
-                                        Toast.makeText(MainActivity.this, "Something Went Wrong\nPlease Try Again", Toast.LENGTH_SHORT).show();
-
-                                        page_control(1);
-//                                        Toast.makeText(MainActivity.this, "Some th", Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        Toast.makeText(MainActivity.this, "Account Created", Toast.LENGTH_SHORT).show();
-                                        page_control(2);
-                                        requesrpermittion();
-//                                        Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
-                                    }
-
-                                } catch (JSONException | MalformedURLException e) {
-                                    e.printStackTrace();
-                                    Log.e("Request_response", e.getMessage(), null);
+                                if (response.getString("status").equals("fail")) {
                                     Toast.makeText(MainActivity.this, "Something Went Wrong\nPlease Try Again", Toast.LENGTH_SHORT).show();
-                                }
-                                Log.e("API_response", response.toString(), null);
-                            }
-                        },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-//                                progressBar.setVisibility(View.GONE);
-                                NetworkResponse response = error.networkResponse;
-                                if (error instanceof ServerError && response != null) {
-                                    try {
-                                        String res = new String(response.data,
-                                                HttpHeaderParser.parseCharset(response.headers, "utf-8"));
-                                        // Now you can use any deserializer to make sense of data
-                                        JSONObject obj = new JSONObject(res);
-                                        Log.e("API_Response_Error 1", obj.toString(), null);
-                                        Toast.makeText(MainActivity.this, "Something Went Wrong\nPlease Try Again", Toast.LENGTH_SHORT).show();
-                                    } catch (UnsupportedEncodingException | JSONException e1) {
-                                        // Couldn't properly decode data to string
-                                        e1.printStackTrace();
-                                        Toast.makeText(MainActivity.this, "Something Went Wrong\nPlease Try Again", Toast.LENGTH_SHORT).show();
-                                    } // returned data is not JSONObject?
 
+                                    page_control(1);
+//                                        Toast.makeText(MainActivity.this, "Some th", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(MainActivity.this, "Account Created", Toast.LENGTH_SHORT).show();
+                                    page_control(2);
+                                    requesrpermittion();
+//                                        Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
                                 }
-                                ;
-                                Log.e("API_Response_Error", error.getMessage(), null);
+
+                            } catch (JSONException | MalformedURLException e) {
+//                                    e.printStackTrace();
+//                                    Log.e("Request_response", e.getMessage(), null);
+                                Toast.makeText(MainActivity.this, "Something Went Wrong\nPlease Try Again", Toast.LENGTH_SHORT).show();
                             }
+//                                Log.e("API_response", response.toString(), null);
+                        },
+                        error -> {
+//                                progressBar.setVisibility(View.GONE);
+                            NetworkResponse response = error.networkResponse;
+                            if (error instanceof ServerError && response != null) {
+                                try {
+                                    String res = new String(response.data,
+                                            HttpHeaderParser.parseCharset(response.headers, "utf-8"));
+                                    // Now you can use any deserializer to make sense of data
+                                    JSONObject obj = new JSONObject(res);
+//                                        Log.e("API_Response_Error 1", obj.toString(), null);
+                                    Toast.makeText(MainActivity.this, "Something Went Wrong\nPlease Try Again", Toast.LENGTH_SHORT).show();
+                                } catch (UnsupportedEncodingException | JSONException e1) {
+                                    // Couldn't properly decode data to string
+//                                        e1.printStackTrace();
+                                    Toast.makeText(MainActivity.this, "Something Went Wrong\nPlease Try Again", Toast.LENGTH_SHORT).show();
+                                } // returned data is not JSONObject?
+
+                            }
+                            //                                Log.e("API_Response_Error", error.getMessage(), null);
                         }) {
                     @Override
 
-                    public Map<String, String> getHeaders() throws AuthFailureError {
-                        HashMap<String, String> headers = new HashMap<String, String>();
+                    public Map<String, String> getHeaders() {
+                        HashMap<String, String> headers = new HashMap<>();
                         headers.put("Content-Type", "application/json; charset=utf-8");
                         return headers;
                     }
@@ -514,30 +485,24 @@ public class MainActivity extends AppCompatActivity {
                     JsonObjectRequest(Request.Method.PATCH,
                             Base_Url+"/api/v1/user/userBasicDetails/"+getDeviceIMEI(),
                             Details,
-                            new Response.Listener<JSONObject>() {
-                                @Override
-                                public void onResponse(JSONObject response) {
-                                    Log.e("U_P_Response", response.toString(), null);
-                                }
+                            response -> {
+//                                    Log.e("U_P_Response", response.toString(), null);
                             },
-                            new Response.ErrorListener() {
-                                @Override
-                                public void onErrorResponse(VolleyError error) {
+                            error -> {
 
-                                    NetworkResponse response = error.networkResponse;
-                                    if (error instanceof ServerError && response != null) {
-                                        String res;
-                                        try {
-                                            res = new String(response.data,
-                                                    HttpHeaderParser.parseCharset(response.headers, "utf-8"));
-                                            Log.e("API_Response_Error 1", res, null);
-                                        } catch (UnsupportedEncodingException e) {
-                                            e.printStackTrace();
-                                        }
-                                        // Now you can use any deserializer to make sense of data
+                                NetworkResponse response = error.networkResponse;
+                                if (error instanceof ServerError && response != null) {
+                                    String res;
+                                    try {
+                                        res = new String(response.data,
+                                                HttpHeaderParser.parseCharset(response.headers, "utf-8"));
+//                                            Log.e("API_Response_Error 1", res, null);
+                                    } catch (UnsupportedEncodingException e) {
+//                                            e.printStackTrace();
                                     }
-                                    Log.e("API_Response_Error", error.getMessage(), null);
+                                    // Now you can use any deserializer to make sense of data
                                 }
+//                                    Log.e("API_Response_Error", error.getMessage(), null);
                             }) {
                         @Override
                         public Map<String, String> getHeaders() {
@@ -549,10 +514,7 @@ public class MainActivity extends AppCompatActivity {
 
             requestQueue.add(jsObjRequest);
         } catch (JSONException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
     }
-
-
-
 }
