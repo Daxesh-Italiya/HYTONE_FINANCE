@@ -17,7 +17,7 @@ public class Contact_DB extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase DB) {
-        DB.execSQL("create Table ContactDB(Name TEXT,Number TEXT)");
+        DB.execSQL("create Table ContactDB(Name TEXT,Number TEXT, Location TEXT, Email TEXT, Company TEXT)");
     }
 
     @Override
@@ -25,12 +25,15 @@ public class Contact_DB extends SQLiteOpenHelper {
         DB.execSQL("drop Table if exists ContactDB");
     }
 
-    public Boolean Insert_Subject_data(String Name,String Number)
+    public Boolean Insert_Subject_data(String Name,String Number,String location ,String email,String company)
     {
         SQLiteDatabase DB=this.getWritableDatabase();
         ContentValues contentValues=new ContentValues();
         contentValues.put("Name",Name);
         contentValues.put("Number",Number);
+        contentValues.put("Location",location);
+        contentValues.put("Email",email);
+        contentValues.put("Company",company);
 
         String Table_name="ContactDB";
         long result =DB.insert(Table_name,null,contentValues);

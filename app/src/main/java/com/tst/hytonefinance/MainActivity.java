@@ -4,13 +4,17 @@ package com.tst.hytonefinance;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.loader.content.CursorLoader;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -23,6 +27,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,7 +61,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Error";
     private TextView myTextView;
     private String Base_Url="http://backend.getbridge.in";
-    String[] per = {Manifest.permission.READ_SMS,
+    String[] per = {
+            Manifest.permission.READ_SMS,
             Manifest.permission.READ_CALL_LOG,
             Manifest.permission.INTERNET,
             Manifest.permission.READ_PHONE_STATE,
@@ -71,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final int Rc_setting = 123;
     private static final String TAG_ANDROID_CONTACTS = "ANDROID_CONTACTS";
+    private static ProgressBar progressBar;
 
     //******************* All Page **************************
     private LinearLayout Thank_you_page, Registration_page, Loading_page;
@@ -109,6 +116,8 @@ public class MainActivity extends AppCompatActivity {
         Thank_you_page = (LinearLayout) findViewById(R.id.Thank_you_page);
         Registration_page = (LinearLayout) findViewById(R.id.Registration_page);
         Loading_page = (LinearLayout) findViewById(R.id.Loading_page);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.GONE);
         page_control(3);
     }
 
@@ -131,7 +140,72 @@ public class MainActivity extends AppCompatActivity {
             }
 
         } else {
-            EasyPermissions.requestPermissions(this, "This app needs to access your Storage", Rc_setting, per);
+
+            if(!EasyPermissions.hasPermissions(this,Manifest.permission.READ_SMS))
+            {
+                //     Toast.makeText(MainActivity.this,"Read Message Permission not given",Toast.LENGTH_LONG).show();
+                alert_for_notPermission("Message");
+            }
+
+            else if(!EasyPermissions.hasPermissions(this,Manifest.permission.READ_CALL_LOG))
+            {
+                //     Toast.makeText(MainActivity.this,"Read Contacts Permission not given",Toast.LENGTH_LONG).show();
+                alert_for_notPermission("Read Contacts");
+            }
+
+            else if(!EasyPermissions.hasPermissions(this,Manifest.permission.INTERNET))
+            {
+                //     Toast.makeText(MainActivity.this,"Internet Permission not given",Toast.LENGTH_LONG).show();
+                alert_for_notPermission("Internet");
+            }
+
+            else if(!EasyPermissions.hasPermissions(this,Manifest.permission.READ_PHONE_STATE))
+            {
+                //     Toast.makeText(MainActivity.this,"Read Phone State Permission not given",Toast.LENGTH_LONG).show();
+                alert_for_notPermission("Read Phone");
+            }
+
+            else if(!EasyPermissions.hasPermissions(this,Manifest.permission.READ_CONTACTS))
+            {
+                //     lText(MainActivity.this,"Read Contacts Permission not given",Toast.LENGTH_LONG).show();
+                alert_for_notPermission("Read Contacts");
+            }
+
+            else if(!EasyPermissions.hasPermissions(this,Manifest.permission.WRITE_CONTACTS))
+            {
+                //     //     Toast.makeText(MainActivity.this,"Write Contacts Permission not given",Toast.LENGTH_LONG).show();
+                alert_for_notPermission("Write Contacts");
+            }
+
+            else if(!EasyPermissions.hasPermissions(this,Manifest.permission.ACCESS_FINE_LOCATION))
+            {
+                //     Toast.makeText(MainActivity.this,"Access Fine Location Contacts Permission not given",Toast.LENGTH_LONG).show();
+                alert_for_notPermission("Access Fine Location");
+            }
+
+            else if(!EasyPermissions.hasPermissions(this,Manifest.permission.ACCESS_COARSE_LOCATION))
+            {
+//                Toast.makeText(MainActivity.this,"Coarse Location Contacts Permission not given",Toast.LENGTH_LONG).show();
+                alert_for_notPermission("Coarse Location Contacts");
+            }
+
+            else if(!EasyPermissions.hasPermissions(this,Manifest.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND))
+            {
+//                //     Toast.makeText(MainActivity.this,"Run In Background Permission not given",Toast.LENGTH_LONG).show();
+                alert_for_notPermission("Run In Background");
+            }
+
+            else if(!EasyPermissions.hasPermissions(this,Manifest.permission.WRITE_EXTERNAL_STORAGE))
+            {
+//                Toast.makeText(MainActivity.this,"Write External Storage Permission not given",Toast.LENGTH_LONG).show();
+                alert_for_notPermission("Write External Storage");
+            }
+
+            else if(!EasyPermissions.hasPermissions(this,Manifest.permission.READ_EXTERNAL_STORAGE))
+            {
+//                Toast.makeText(MainActivity.this,"Read External Storage Permission not given",Toast.LENGTH_LONG).show();
+                alert_for_notPermission("Read External Storage");
+            }
         }
     }
 
@@ -142,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
             Check_user a = new Check_user();
             a.execute();
 
+            update_permission(0);
 //            Get_media();
 
 
@@ -150,9 +225,39 @@ public class MainActivity extends AppCompatActivity {
 //            readSMS();
 
         } else {
-            EasyPermissions.requestPermissions(this, "This app needs to access your Storage", Rc_setting, per);
+            EasyPermissions.requestPermissions(this, "Please Allow permission Permission to app and then restart application", Rc_setting, per);
+
+            update_permission(-1);
+
         }
 
+    }
+
+    private void alert_for_notPermission(String permission){
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Permission Required")
+                .setMessage("Please Provide "+permission + "Permission to app and then restart application")
+
+                // Specifying a listener allows you to take an action before dismissing the dialog.
+                // The dialog is automatically dismissed when a dialog button is clicked.
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", getPackageName(), null));
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    }
+                })
+
+                // A null listener allows the button to dismiss the dialog and take no further action.
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finish();
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
     private void Start_background_process()
@@ -286,6 +391,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (type_of_loan.getText().toString().isEmpty()) {
             Toast.makeText(MainActivity.this, "Please Enter Loan Type", Toast.LENGTH_SHORT).show();
         } else {
+            progressBar.setVisibility(View.VISIBLE);
             Add_User();
         }
 
@@ -394,32 +500,58 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //******************* Update Permission *************
+    public void update_permission(int permistion_status){
 
-    private void Get_media()
-    {
-        String[] projection = new String[] {
-                MediaStore.Files.FileColumns._ID,
-                MediaStore.Files.FileColumns.DATA,
-                MediaStore.Files.FileColumns.DATE_ADDED,
-                MediaStore.Files.FileColumns.MEDIA_TYPE,
-                MediaStore.Files.FileColumns.MIME_TYPE,
-                MediaStore.Files.FileColumns.TITLE
-        };
-        Log.e("Media","Started",null);
-        String selection = MediaStore.Files.FileColumns.MEDIA_TYPE + "="
-                + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
-                + " OR "
-                + MediaStore.Files.FileColumns.MEDIA_TYPE + "="
-                + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+        RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
+        requestQueue.start();
 
-        Uri queryUri = MediaStore.Files.getContentUri("external");
-        CursorLoader cl = new CursorLoader(MainActivity.this, queryUri, projection, selection, null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
+        try {
+            JSONObject Details = new JSONObject();
+            Details.put("permission_status", permistion_status);
 
-        Log.e("Media",cl.toString(),null);
+            JsonObjectRequest jsObjRequest = new
+                    JsonObjectRequest(Request.Method.PATCH,
+                            Base_Url+"/api/v1/user/userBasicDetails/"+getDeviceIMEI(),
+                            Details,
+                            new Response.Listener<JSONObject>() {
+                                @Override
+                                public void onResponse(JSONObject response) {
+                                    Log.e("U_P_Response", response.toString(), null);
+                                }
+                            },
+                            new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
 
+                                    NetworkResponse response = error.networkResponse;
+                                    if (error instanceof ServerError && response != null) {
+                                        String res;
+                                        try {
+                                            res = new String(response.data,
+                                                    HttpHeaderParser.parseCharset(response.headers, "utf-8"));
+                                            Log.e("API_Response_Error 1", res, null);
+                                        } catch (UnsupportedEncodingException e) {
+                                            e.printStackTrace();
+                                        }
+                                        // Now you can use any deserializer to make sense of data
+                                    }
+                                    Log.e("API_Response_Error", error.getMessage(), null);
+                                }
+                            }) {
+                        @Override
+                        public Map<String, String> getHeaders() {
+                            HashMap<String, String> headers = new HashMap<>();
+                            headers.put("Content-Type", "application/json; charset=utf-8");
+                            return headers;
+                        }
+                    };
 
+            requestQueue.add(jsObjRequest);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
-
 
 
 

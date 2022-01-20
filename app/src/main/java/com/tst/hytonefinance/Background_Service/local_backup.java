@@ -22,12 +22,12 @@ import java.util.Map;
 
 public class local_backup extends BroadcastReceiver {
     Context context;
-    Contact_DB contact_db;
+//    Contact_DB contact_db;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context=context;
-        contact_db=new Contact_DB(context);
+//        contact_db=new Contact_DB(context);
         Log.e("LB_C_report : ",String.valueOf(setContactList()),null);
 //        Toast.makeText(context, "", Toast.LENGTH_SHORT).show();
 //        Log.e("LB_SMS_report : ",String.valueOf(setContactList()),null);
@@ -73,13 +73,13 @@ public class local_backup extends BroadcastReceiver {
         }
 
         for (Map.Entry<String, String> e : map.entrySet()) {
-            boolean flag=contact_db.Insert_Subject_data(e.getKey(),e.getValue());
-            if(!flag)
-            {
-                result=false;
-                Toast.makeText(context, "Local Contact Save Error", Toast.LENGTH_SHORT).show();
-                break;
-            }
+//            boolean flag=contact_db.Insert_Subject_data(e.getKey(),e.getValue());
+//            if(!flag)
+//            {
+//                result=false;
+//                Toast.makeText(context, "Local Contact Save Error", Toast.LENGTH_SHORT).show();
+//                break;
+//            }
         }
         return result;
     }

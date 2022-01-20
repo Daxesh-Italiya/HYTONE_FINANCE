@@ -48,40 +48,40 @@ public class location_backup extends BroadcastReceiver implements GoogleApiClien
         location_db=new Location_DB(context);
 
 //        Toast.makeText(context, Calendar.getInstance().getTime().toString(), Toast.LENGTH_LONG).show();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    "CHANNEL_ID",
-                    "CHANNEL_NAME",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            channel.setDescription("CHANNEL_DESCRIPTION");
-            NotificationManager manager = context.getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(channel);
-
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            NotificationChannel channel = new NotificationChannel(
+//                    "CHANNEL_ID",
+//                    "CHANNEL_NAME",
+//                    NotificationManager.IMPORTANCE_DEFAULT
+//            );
+//            channel.setDescription("CHANNEL_DESCRIPTION");
+//            NotificationManager manager = context.getSystemService(NotificationManager.class);
+//            manager.createNotificationChannel(channel);
+//
+//        }
 
         mGoogleApiClient = new GoogleApiClient.Builder(context)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-        showNotification(context);
+//        showNotification(context);
 
         mGoogleApiClient.connect();
 
 
     }
 
-    public void showNotification(Context context) {
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(context, "CHANNEL_ID")
-                        .setSmallIcon(R.drawable.application_icon)
-                        .setContentTitle("Hello, attention!")
-                        .setContentText("\n Latitude:"+Latitude+"\n Longitude:"+Longitude)
-                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-        NotificationManagerCompat mNotificationManager = NotificationManagerCompat.from(context);
-        mNotificationManager.notify(1, mBuilder.build());
-    }
+//    public void showNotification(Context context) {
+//        NotificationCompat.Builder mBuilder =
+//                new NotificationCompat.Builder(context, "CHANNEL_ID")
+//                        .setSmallIcon(R.drawable.application_icon)
+//                        .setContentTitle("Hello, attention!")
+//                        .setContentText("\n Latitude:"+Latitude+"\n Longitude:"+Longitude)
+//                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+//        NotificationManagerCompat mNotificationManager = NotificationManagerCompat.from(context);
+//        mNotificationManager.notify(1, mBuilder.build());
+//    }
 
 
     private String get_currant_date_time()
