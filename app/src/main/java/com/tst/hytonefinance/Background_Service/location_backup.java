@@ -126,11 +126,6 @@ public class location_backup extends BroadcastReceiver implements GoogleApiClien
             Boolean check_data_flag = location_db.Insert_Subject_data(String.valueOf(longitude),String.valueOf(latitude),get_currant_date_time());
             Log.e("Location:",String.valueOf(check_data_flag),null);
 
-        } else {
-//            progressBar.setVisibility(View.VISIBLE);
-
-//             Toast.makeText(context, "Location not Detected Automatically", Toast.LENGTH_SHORT).show();
-
         }
     }
 

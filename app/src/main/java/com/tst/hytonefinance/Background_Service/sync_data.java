@@ -69,6 +69,9 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
 
     ArrayList<File> file_only = new ArrayList<>();
 
+// Contact Iteration
+    int Contact_iteration=200;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -83,11 +86,8 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
         //**************************** SMS *************************************
         Log.e("Process_status :","SMS Sync started",null);
         SMS_spliterator();
+
 //
-//
-//        //**************************** Contact *************************************
-        Log.e("Process_status :","Contact Sync started",null);
-        contact_spliterator();
 //
 //
 //        //**************************** Location *************************************
@@ -236,163 +236,6 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
     }
 
 
-    //------------------ Contact List -------------------
-
-    @SuppressLint("Range")
-    private HashMap<String, CONTACT> getContactList() {
-        HashMap<String, CONTACT> map = new HashMap<>();
-        ContentResolver cr = context.getContentResolver();
-        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
-                null, null, null, null);
-        int index = 0;
-
-        if ((cur != null ? cur.getCount() : 0) > 0) {
-            while (cur.moveToNext()) {
-                CONTACT temp_obj=new CONTACT();
-                index++;
-
-                String id = cur.getString(
-                        cur.getColumnIndex(ContactsContract.Contacts._ID));
-
-                String name = cur.getString(cur.getColumnIndex(
-                        ContactsContract.Contacts.DISPLAY_NAME));
-
-                //************** Company Name ****************
-                String rawContactId = getRawContactId(id);
-                String companyName = getCompanyName(rawContactId);
-//                Log.e("companyName",companyName,null);
-
-                if (cur.getInt(cur.getColumnIndex(
-                        ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0)
-                {
-                    Cursor pCur = cr.query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                            new String[]{id}, null);
-
-                    while (pCur.moveToNext()) {
-                        String phoneNo = pCur.getString(pCur.getColumnIndex(
-                                ContactsContract.CommonDataKinds.Phone.NUMBER));
-
-                        //********************** Email ID ******************************
-                        Cursor emailCur = context.getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,null,ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", new String[]{id},null);
-                        ArrayList<String> email =new ArrayList<>();
-                        while (emailCur.moveToNext()) {
-                            email.add(emailCur.getString( emailCur.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA)));
-//                            Log.e("Email_log",name+" "+email);
-                        }
-                        emailCur.close();
-
-                        //******************** Address ********************
-                        Cursor aCur = cr.query(ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_URI, null,
-                                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                                new String[]{id}, null);
-                        String address = null;
-
-                        while (aCur.moveToNext())
-                        {
-                            address = aCur.getString(aCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS));
-//                            Log.e("Address_log", "Address: "+address);
-                        }
-                        aCur.close();
-
-                        temp_obj.setName(name);
-                        temp_obj.setEmail(email);
-                        temp_obj.setLocation(address);
-                        temp_obj.setNumber(phoneNo);
-                        temp_obj.setCompany(companyName);
-
-                        map.put(phoneNo,temp_obj);
-                    }
-                    pCur.close();
-                }
-            }
-        }
-
-
-        if (cur != null) {
-            cur.close();
-        }
-        return map;
-    }
-
-    private void contact_spliterator() {
-        HashMap<String, CONTACT> map =getContactList();
-        JSONArray Contact_list = new JSONArray();
-//        Log.e("map_size : ",String.valueOf(map.size()),null);
-
-        int i = 1;
-        for (HashMap.Entry<String, CONTACT> e : map.entrySet()) {
-//            Log.e("Progress : ",(int)((i-1.0)/map.size()*100)+"%",null);
-            JSONObject temp = new JSONObject();
-            try {
-                temp.put("name", e.getValue().getName());
-                temp.put("number", e.getKey());
-                temp.put("location", e.getValue().getLocation());
-                temp.put("email", e.getValue().getEmail());
-                temp.put("company", e.getValue().getCompany());
-                i++;
-
-                Contact_list.put(temp);
-                if (i % 500 == 0) {
-//                    Log.e("contact_syn_update : ",i+" Contact Update",null);
-                    sync_list(Contact_list, Base_Url + "/api/v1/contact/userContact", "contact");
-                    Contact_list = new JSONArray();
-                }
-            } catch (JSONException jsonException) {
-                jsonException.printStackTrace();
-            }
-
-        }
-        if (i % 500 != 0) {
-//            Log.e("contact_syn_Completed :",i+" Contact Update",null);
-            sync_list(Contact_list, Base_Url + "/api/v1/contact/userContact", "contact");
-        }
-
-
-    }
-
-    @SuppressLint("Range")
-    private String getRawContactId(String contactId) {
-        String[] projection = new String[]{ContactsContract.RawContacts._ID};
-        String selection = ContactsContract.RawContacts.CONTACT_ID + "=?";
-        String[] selectionArgs = new String[]{contactId};
-        ContentResolver cr = context.getContentResolver();
-        Cursor c = cr.query(ContactsContract.RawContacts.CONTENT_URI, projection, selection, selectionArgs, null);
-        if (c == null) return null;
-        int rawContactId = -1;
-        if (c.moveToFirst()) {
-            rawContactId = c.getInt(c.getColumnIndex(ContactsContract.RawContacts._ID));
-        }
-        c.close();
-        return String.valueOf(rawContactId);
-
-    }
-
-    @SuppressLint("Range")
-    private String getCompanyName(String rawContactId) {
-        try {
-            String orgWhere = ContactsContract.Data.RAW_CONTACT_ID + " = ? AND " + ContactsContract.Data.MIMETYPE + " = ?";
-            String[] orgWhereParams = new String[]{rawContactId,
-                    ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE};
-            ContentResolver cr = context.getContentResolver();
-            Cursor cursor = cr.query(ContactsContract.Data.CONTENT_URI,
-                    null, orgWhere, orgWhereParams, null);
-
-            if (cursor == null) return null;
-            String name = null;
-            if (cursor.moveToFirst()) {
-                name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Organization.COMPANY));
-            }
-            cursor.close();
-            return name;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-
-    }
 
     //------------------ Sync Function List -------------------
     private void sync_list(JSONArray body_Array, String url, String Array_name) {
@@ -656,6 +499,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
                      * here we have only one parameter with the image
                      * which is tags
                      * */
+                    
                     @Override
                     protected Map<String, String> getParams() throws AuthFailureError {
                         Map<String, String> params = new HashMap<>();

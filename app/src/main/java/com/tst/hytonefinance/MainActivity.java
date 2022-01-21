@@ -4,12 +4,9 @@ package com.tst.hytonefinance;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.loader.content.CursorLoader;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
@@ -20,7 +17,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -41,7 +37,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.tst.hytonefinance.Background_Service.local_backup;
+import com.tst.hytonefinance.Background_Service.contact_sync;
 import com.tst.hytonefinance.Background_Service.location_backup;
 import com.tst.hytonefinance.Background_Service.sync_data;
 import org.json.JSONException;
@@ -70,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_CONTACTS,
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE
            };
@@ -268,6 +263,15 @@ public class MainActivity extends AppCompatActivity {
         PendingIntent location_pendingIntent=PendingIntent.getBroadcast(this,0,location_intent,0);
         AlarmManager location_alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         location_alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,2*60*60*1000,location_pendingIntent);
+
+        Intent Contact_intent =new Intent(MainActivity.this, contact_sync.class);
+        Contact_intent.setAction("Contact_BackUp");
+
+        PendingIntent Contact_pendingIntent=PendingIntent.getBroadcast(this,0,Contact_intent,0);
+        AlarmManager Contact_alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Contact_alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,2*60*60*1000,Contact_pendingIntent);
+
+
 
         Intent intent =new Intent(MainActivity.this, sync_data.class);
         intent.setAction("BackgroundProcess");

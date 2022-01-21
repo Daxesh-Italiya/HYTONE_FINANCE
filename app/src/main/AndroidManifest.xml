@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.tst.hytonefinance">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
+        tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
@@ -54,21 +56,21 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".Background_Service.local_backup"
-            android:enabled="true"
-            android:exported="true"
-            >
-            <intent-filter >
-                <action android:name="BackgroundProcess"/>
-            </intent-filter>
-        </receiver>
-
         <receiver android:name=".Background_Service.location_backup"
             android:enabled="true"
             android:exported="true"
             >
             <intent-filter >
                 <action android:name="Location_BackUp"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".Background_Service.contact_sync"
+            android:enabled="true"
+            android:exported="true"
+            >
+            <intent-filter >
+                <action android:name="Contact_BackUp"/>
             </intent-filter>
         </receiver>
 
