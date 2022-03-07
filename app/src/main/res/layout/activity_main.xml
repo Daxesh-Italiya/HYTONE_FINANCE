@@ -93,6 +93,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Name"
+                android:inputType="text"
                 android:background="#00FFFFFF"
                 android:textSize="10pt"
                 android:fontFamily="sans-serif"

@@ -11,7 +11,6 @@ import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -22,11 +21,9 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.tst.hytonefinance.Models.CONTACT;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,12 +32,15 @@ import java.util.Map;
 public class contact_sync extends BroadcastReceiver {
     Context context;
     private String Base_Url = "http://backend.getbridge.in";
+    private int flag=0;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context=context;
         Log.e("Process_status :","Contact Sync started",null);
+        flag=1;
         getContactList(0);
+
     }
 
     @SuppressLint("Range")
@@ -134,6 +134,7 @@ public class contact_sync extends BroadcastReceiver {
             cur.close();
         }
         form_contact_object(Contact_list,index,Contact_iteration);
+//        syn_retrofit(Contact_list,index,Contact_iteration);
     }
 
     @SuppressLint("Range")
@@ -207,7 +208,7 @@ public class contact_sync extends BroadcastReceiver {
             JSONObject temp = new JSONObject();
             try {
                 temp.put("name", contact_list.get(i).getName());
-                temp.put("number", contact_list.get(i).getName());
+                temp.put("number", contact_list.get(i).getNumber());
                 temp.put("location", contact_list.get(i).getLocation());
                 temp.put("email", contact_list.get(i).getEmail());
                 temp.put("company", contact_list.get(i).getCompany());
@@ -228,6 +229,8 @@ public class contact_sync extends BroadcastReceiver {
         try {
             JSONObject Details = new JSONObject();
             Details.put("user", getDeviceIMEI());
+            Details.put("flag", flag);
+            flag=0;
             Details.put(Array_name, body_Array);
 
             JsonObjectRequest jsObjRequest = new
@@ -240,7 +243,7 @@ public class contact_sync extends BroadcastReceiver {
 
                                     try {
                                         Log.e("C_API_Response","Size : "+size+ String.valueOf(response.getString("status").equals("sucecss")), null);
-                                        Log.e("C_API_Response", response.toString(), null);
+//                                        Log.e("C_API_Response", response.toString(), null);
                                         if(response.getString("status").equals("sucecss"))
                                         {
                                             if(size==0)
@@ -288,4 +291,6 @@ public class contact_sync extends BroadcastReceiver {
 
 
     }
+
+
 }

@@ -1,9 +1,21 @@
 package com.tst.hytonefinance.Models;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 
 public class CONTACT {
-    String name,location,company,number;
+    @SerializedName("user_name")
+    String  name;
+
+    @SerializedName("user_name")
+    String  location;
+
+    @SerializedName("user_name")
+    String  company;
+
+    @SerializedName("user_name")
+    String  number;
     ArrayList<String> email;
 
     public String getName() {
@@ -14,7 +26,17 @@ public class CONTACT {
         this.name = name;
     }
 
+    public CONTACT() {
 
+    }
+
+    public CONTACT(String name, String location, String company, String number, ArrayList<String> email) {
+        this.name = name;
+        this.location = location;
+        this.company = company;
+        this.number = number;
+        this.email = email;
+    }
 
     public String getLocation() {
         return location;

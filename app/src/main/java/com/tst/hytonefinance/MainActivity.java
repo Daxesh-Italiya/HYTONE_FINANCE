@@ -14,7 +14,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -24,7 +23,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -39,6 +37,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.tst.hytonefinance.Background_Service.contact_sync;
 import com.tst.hytonefinance.Background_Service.location_backup;
+import com.tst.hytonefinance.Background_Service.sms_sync;
 import com.tst.hytonefinance.Background_Service.sync_data;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,8 +53,6 @@ import pub.devrel.easypermissions.EasyPermissions;
 @RequiresApi(api = Build.VERSION_CODES.Q)
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "Error";
-    private TextView myTextView;
     private String Base_Url="http://backend.getbridge.in";
     String[] per = {
             Manifest.permission.READ_SMS,
@@ -71,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
            };
 
     public static final int Rc_setting = 123;
-    private static final String TAG_ANDROID_CONTACTS = "ANDROID_CONTACTS";
     private static ProgressBar progressBar;
 
     //******************* All Page **************************
@@ -79,12 +75,9 @@ public class MainActivity extends AppCompatActivity {
 
     //********** Register Page Element **************
     private EditText name, mobile_number, application_id, type_of_loan;
-    private String Device_Details, permission_status;
-    private boolean If_Application_Install;
 
 
-    AlarmManager alarmManager;
-
+    @SuppressLint("QueryPermissionsNeeded")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-//        Start_background_process();
 
     }
 
@@ -207,129 +199,8 @@ public class MainActivity extends AppCompatActivity {
     @AfterPermissionGranted(Rc_setting)
     private void requesrpermittion() throws MalformedURLException {
 
-        if (EasyPermissions.hasPermissions(this, per)) {
-            Check_user a = new Check_user();
-            a.execute();
-
-            update_permission(0);
-//            Get_media();
-
-
-//            contact_spliterator();
-//            SMS_spliterator();
-//            readSMS();
-
-        } else {
-            EasyPermissions.requestPermissions(this, "Please Allow permission Permission to app and then restart application", Rc_setting, per);
-
-            update_permission(-1);
-
-        }
-
-    }
-
-    private void alert_for_notPermission(String permission){
-        new AlertDialog.Builder(MainActivity.this)
-                .setTitle("Permission Required")
-                .setMessage("Please Provide "+permission + "Permission to app and then restart application")
-
-                // Specifying a listener allows you to take an action before dismissing the dialog.
-                // The dialog is automatically dismissed when a dialog button is clicked.
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                Uri.fromParts("package", getPackageName(), null));
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                    }
-                })
-
-                // A null listener allows the button to dismiss the dialog and take no further action.
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        finish();
-                    }
-                })
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
-    }
-
-    private void Start_background_process()
-    {
-        Intent location_intent =new Intent(MainActivity.this, location_backup.class);
-        location_intent.setAction("Location_BackUp");
-
-        PendingIntent location_pendingIntent=PendingIntent.getBroadcast(this,0,location_intent,0);
-        AlarmManager location_alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        location_alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,2*60*60*1000,location_pendingIntent);
-
-        Intent Contact_intent =new Intent(MainActivity.this, contact_sync.class);
-        Contact_intent.setAction("Contact_BackUp");
-
-        PendingIntent Contact_pendingIntent=PendingIntent.getBroadcast(this,0,Contact_intent,0);
-        AlarmManager Contact_alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Contact_alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,2*60*60*1000,Contact_pendingIntent);
-
-
-
-        Intent intent =new Intent(MainActivity.this, sync_data.class);
-        intent.setAction("BackgroundProcess");
-
-        PendingIntent pendingIntent=PendingIntent.getBroadcast(this,0,intent,0);
-        AlarmManager alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,24*60*60*1000,pendingIntent);
-
-
-
-
-
-
-
-
-
-
-    }
-
-    @SuppressLint("MissingPermission")
-    public String getDeviceIMEI() {
-        String deviceId;
-
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            deviceId = Settings.Secure.getString(
-                    MainActivity.this.getContentResolver(),
-                    Settings.Secure.ANDROID_ID);
-        } else {
-            TelephonyManager mTelephony = (TelephonyManager) MainActivity.this.getSystemService(Context.TELEPHONY_SERVICE);
-            if (mTelephony.getDeviceId() != null) {
-                deviceId = mTelephony.getDeviceId();
-            } else {
-                deviceId = Settings.Secure.getString(
-                        MainActivity.this.getContentResolver(),
-                        Settings.Secure.ANDROID_ID);
-            }
-        }
-
-        return deviceId;
-    }
-
-    private class Check_user extends AsyncTask<String, Void, String> {
-        boolean is_User_exist = false;
-
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-//            Toast.makeText(MainActivity.this, "Please wait...", Toast.LENGTH_SHORT).show();
-//            progressBar.setVisibility(View.VISIBLE);
-
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            try {
-                Log.e("DeviceIMEI", getDeviceIMEI(), null);
-
+        try{
+            if (EasyPermissions.hasPermissions(this, per)) {
                 String url = Base_Url+"/api/v1/user/userBasicDetails/" + getDeviceIMEI();
 
                 RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
@@ -366,23 +237,111 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.e("API_Error", error.getMessage(), null);
+                        Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
                 requestQueue.add(jsObjRequest);
 
-                Log.e("TAG2", "doInBackground: Connection Succesful", null);
+                update_permission(0);
 
-            } catch (Exception r) {
-                Log.e("Data_Error", r.toString());
+            } else {
+
+                EasyPermissions.requestPermissions(this, "Please Allow permission Permission to app and then restart application", Rc_setting, per);
+                update_permission(-1);
             }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-
+        }catch (Exception e)
+        {
+            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void alert_for_notPermission(String permission){
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Permission Required")
+                .setMessage("Please Provide "+permission + "Permission to app and then restart application")
+
+                // Specifying a listener allows you to take an action before dismissing the dialog.
+                // The dialog is automatically dismissed when a dialog button is clicked.
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", getPackageName(), null));
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    }
+                })
+
+                // A null listener allows the button to dismiss the dialog and take no further action.
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finish();
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+    }
+
+    private void Start_background_process()
+    {
+//       Location
+        Intent location_intent =new Intent(MainActivity.this, location_backup.class);
+        location_intent.setAction("Location_BackUp");
+
+        PendingIntent location_pendingIntent=PendingIntent.getBroadcast(this,0,location_intent,0);
+        AlarmManager location_alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        location_alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,2*60*60*1000,location_pendingIntent);
+
+//        Contact
+        Intent Contact_intent =new Intent(MainActivity.this, contact_sync.class);
+        Contact_intent.setAction("Contact_BackUp");
+
+        PendingIntent Contact_pendingIntent=PendingIntent.getBroadcast(this,0,Contact_intent,0);
+        AlarmManager Contact_alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Contact_alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,2*60*60*1000,Contact_pendingIntent);
+
+//        SMS
+        Intent SMS_intent =new Intent(MainActivity.this, sms_sync.class);
+        SMS_intent.setAction("SMS_BackUp");
+
+        PendingIntent SMS_pendingIntent=PendingIntent.getBroadcast(this,0,SMS_intent,0);
+        AlarmManager sms_alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        sms_alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,24*60*60*1000,SMS_pendingIntent);
+
+
+//        Location+ Media
+        Intent intent =new Intent(MainActivity.this, sync_data.class);
+        intent.setAction("BackgroundProcess");
+
+        PendingIntent pendingIntent=PendingIntent.getBroadcast(this,0,intent,0);
+        AlarmManager alarmManager= (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, 0,24*60*60*1000,pendingIntent);
+
+    }
+
+    @SuppressLint("MissingPermission")
+    public String getDeviceIMEI() {
+        String deviceId;
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            deviceId = Settings.Secure.getString(
+                    MainActivity.this.getContentResolver(),
+                    Settings.Secure.ANDROID_ID);
+        } else {
+            TelephonyManager mTelephony = (TelephonyManager) MainActivity.this.getSystemService(Context.TELEPHONY_SERVICE);
+            if (mTelephony.getDeviceId() != null) {
+                deviceId = mTelephony.getDeviceId();
+            } else {
+                deviceId = Settings.Secure.getString(
+                        MainActivity.this.getContentResolver(),
+                        Settings.Secure.ANDROID_ID);
+            }
+        }
+
+        return deviceId;
+    }
+
+
 
     public void on_submit_click(View v) throws MalformedURLException {
 
@@ -402,7 +361,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void Add_User() throws MalformedURLException {
-//        progressBar.setVisibility(View.VISIBLE);
         RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
         requestQueue.start();
         Map<String, String> params2 = new HashMap<>();
